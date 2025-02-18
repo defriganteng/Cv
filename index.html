@@ -261,91 +261,36 @@
         <div>Loading...</div>
     </div>
 
-    <script>
-        // Konfigurasi
-        const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwE19k53xPQZnT39ubSoED9lrX0fI5lmox92gzbtRXqejVVKQSAA96vJ3cePzgvuI1vog/exec';
+     <script>
+        const SHEET_URL = 'https://script.google.com/macros/s/...'; 
 
-        // Format currency tanpa desimal
+        // Format angka tanpa desimal
         const formatCurrency = (amount) => {
-            return new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }).format(amount);
+            return "Rp " + Number(amount).toLocaleString('id-ID');
         };
 
-        // Format jumlah di form input
-        function formatAmount(input) {
-            // Hapus semua karakter non-digit
-            let value = input.value.replace(/\D/g, '');
-            
-            // Format dengan pemisah ribuan
-            value = new Intl.NumberFormat('id-ID').format(value);
-            
-            // Update nilai input
-            input.value = value;
+        // Format input jumlah dengan pemisah ribuan
+        function formatAmountInput(input) {
+            let value = input.value.replace(/[^0-9]/g, '');
+            input.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         }
 
-        // Mendapatkan nilai numerik dari input jumlah
-        function getNumericAmount() {
-            return document.getElementById('amount').value.replace(/\D/g, '');
-        }
-
-        // Format tanggal
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toISOString().split('T')[0];
-        }
-
-        // Loading indicator
-        const showLoading = () => document.querySelector('.loading').style.display = 'flex';
-        const hideLoading = () => document.querySelector('.loading').style.display = 'none';
-
-        // Cancel edit
-        function cancelEdit() {
-            document.getElementById('editId').value = '';
-            document.getElementById('transactionForm').reset();
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('date').value = today;
-            document.querySelector('.btn-cancel').style.display = 'none';
-            document.querySelector('.btn-submit').textContent = 'Simpan';
-        }
-
-        // Fungsi untuk memuat data
+        // Load transaksi dari Google Sheets
         async function loadTransactions() {
-            showLoading();
-            try {
-                const response = await fetch(`${SHEET_URL}?action=read`);
-                const result = await response.json();
-                
-                if (result.success) {
-                    renderTransactions(result.data);
-                } else {
-                    throw new Error(result.message);
-                }
-            } catch (error) {
-                console.error('Error loading data:', error);
-                alert('Gagal memuat data: ' + error.message);
-            } finally {
-                hideLoading();
+            const response = await fetch(`${SHEET_URL}?action=read`);
+            const result = await response.json();
+            if (result.success) {
+                renderTransactions(result.data);
             }
         }
 
-        // Fungsi untuk menampilkan data
         function renderTransactions(transactions) {
             const tbody = document.getElementById('transactionList');
             tbody.innerHTML = '';
-
             let totalBalance = 0;
 
-            if (!Array.isArray(transactions)) {
-                console.error('Transactions is not an array:', transactions);
-                return;
-            }
-
             transactions.forEach(transaction => {
-                const amount = parseFloat(transaction.amount);
+                let amount = parseInt(transaction.amount);
                 if (transaction.type === 'income') {
                     totalBalance += amount;
                 } else {
@@ -354,15 +299,13 @@
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${formatDate(transaction.date)}</td>
+                    <td>${transaction.date}</td>
                     <td>${transaction.description}</td>
                     <td>${transaction.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}</td>
                     <td>${formatCurrency(amount)}</td>
                     <td>
-                        <div class="action-buttons">
-                            <button class="btn-edit" onclick="editTransaction('${transaction.id}')">Edit</button>
-                            <button class="btn-delete" onclick="deleteTransactionHandler('${transaction.id}')">Hapus</button>
-                        </div>
+                        <button class="btn-edit" onclick="editTransaction('${transaction.id}')">Edit</button>
+                        <button class="btn-delete" onclick="deleteTransaction('${transaction.id}')">Hapus</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -371,99 +314,77 @@
             document.getElementById('totalBalance').textContent = formatCurrency(totalBalance);
         }
 
-        // Fungsi untuk edit transaksi
+        // Fungsi edit transaksi
         async function editTransaction(id) {
-            showLoading();
-            try {
-                const response = await fetch(`${SHEET_URL}?action=read&id=${id}`);
-                const result = await response.json();
+            const response = await fetch(`${SHEET_URL}?action=read&id=${id}`);
+            const result = await response.json();
+            if (result.success && result.data) {
+                const transaction = result.data;
+                document.getElementById('editId').value = transaction.id;
+                document.getElementById('date').value = transaction.date;
+                document.getElementById('description').value = transaction.description;
+                document.getElementById('type').value = transaction.type;
+                document.getElementById('amount').value = Number(transaction.amount).toLocaleString('id-ID');
                 
-                if (result.success && result.data) {
-                    const transaction = result.data;
-                    document.getElementById('editId').value = transaction.id;
-                    document.getElementById('date').value = formatDate(transaction.date);
-                    document.getElementById('description').value = transaction.description;
-                    document.getElementById('type').value = transaction.type;
-                    document.getElementById('amount').value = new Intl.NumberFormat('id-ID').format(transaction.amount);
-                    document.querySelector('.btn-cancel').style.display = 'block';
-                    document.querySelector('.btn-submit').textContent = 'Update';
-                } else {
-                    throw new Error(result.message || 'Transaksi tidak ditemukan');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Gagal mengambil data: ' + error.message);
-            } finally {
-                hideLoading();
+                document.querySelector('.btn-cancel').style.display = 'block';
             }
         }
 
-        // Fungsi untuk menghapus transaksi
-        async function deleteTransactionHandler(id) {
-            if (!confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) {
-                return;
-            }
+        // Fungsi batal edit
+        function cancelEdit() {
+            document.getElementById('transactionForm').reset();
+            document.getElementById('editId').value = '';
+            document.querySelector('.btn-cancel').style.display = 'none';
+        }
 
-            showLoading();
-            try {
-                const response = await fetch(`${SHEET_URL}?action=delete`, {
-                    method: 'POST',
-                    body: JSON.stringify({ id })
-                });
-                const result = await response.json();
-                
-                if (result.success) {
-                    alert('Transaksi berhasil dihapus');
-                    await loadTransactions();
-                } else {
-                    throw new Error(result.message);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Gagal menghapus data: ' + error.message);
-            } finally {
-                hideLoading();
+        // Fungsi hapus transaksi
+        async function deleteTransaction(id) {
+            if (!confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) return;
+            const response = await fetch(`${SHEET_URL}?action=delete`, {
+                method: 'POST',
+                body: JSON.stringify({ id })
+            });
+            const result = await response.json();
+            if (result.success) {
+                loadTransactions();
             }
         }
 
-        // Event listener untuk form
+        // Event listener untuk submit form
         document.getElementById('transactionForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            showLoading();
-
             const formData = {
                 id: document.getElementById('editId').value,
                 date: document.getElementById('date').value,
                 description: document.getElementById('description').value,
                 type: document.getElementById('type').value,
-                amount: getNumericAmount()
+                amount: document.getElementById('amount').value.replace(/\./g, '') 
             };
 
-            try {
-                const action = formData.id ? 'update' : 'create';
-                const response = await fetch(`${SHEET_URL}?action=${action}`, {
-                    method: 'POST',
-                    body: JSON.stringify(formData)
-                });
+            const action = formData.id ? 'update' : 'create';
+            const response = await fetch(`${SHEET_URL}?action=${action}`, {
+                method: 'POST',
+                body: JSON.stringify(formData)
+            });
 
-                const result = await response.json();
-                
-                if (result.success) {
-                    alert(action === 'create' ? 'Data berhasil disimpan' : 'Data berhasil diperbarui');
-                    cancelEdit();
-                    await loadTransactions();
-                } else {
-                    throw new Error(result.message);
-                }
-            } catch (error) {
-                console.error('Error saving data:', error);
-                alert('Gagal menyimpan data: ' + error.message);
-            } finally {
-                hideLoading();
+            const result = await response.json();
+            if (result.success) {
+                document.getElementById('transactionForm').reset();
+                document.getElementById('editId').value = '';
+                document.querySelector('.btn-cancel').style.display = 'none';
+                loadTransactions();
             }
         });
 
         // Reset form handler
         document.getElementById('transactionForm').addEventListener('reset', () => {
             document.getElementById('editId').value = '';
-            const</antArtifact>
+            document.querySelector('.btn-cancel').style.display = 'none';
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTransactions();
+        });
+    </script>
+</body>
+</html>
