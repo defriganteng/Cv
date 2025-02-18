@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Pembukuan Keuangan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .balance {
+            font-size: 24px;
+            margin-top: 10px;
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .btn-submit {
+            background-color: #2ecc71;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-reset {
+            background-color: #e74c3c;
+            color: white;
+            flex: 1;
+        }
+
+        .transactions {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-edit {
+            background-color: #3498db;
+            color: white;
+            padding: 5px 10px;
+        }
+
+        .btn-delete {
+            background-color: #e74c3c;
+            color: white;
+            padding: 5px 10px;
+        }
+
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 20px;
+            z-index: 1000;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Pembukuan Keuangan</h1>
+            <div class="balance">Saldo: <span id="totalBalance">Rp 0</span></div>
+        </div>
+
+        <div class="form-container">
+            <form id="transactionForm">
+                <input type="hidden" id="editId" value="">
+                <div class="form-group">
+                    <label for="date">Tanggal</label>
+                    <input type="date" id="date" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Keterangan</label>
+                    <input type="text" id="description" required>
+                </div>
+                <div class="form-group">
+                    <label for="type">Jenis</label>
+                    <select id="type" required>
+                        <option value="income">Pemasukan</option>
+                        <option value="expense">Pengeluaran</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="amount">Jumlah</label>
+                    <input type="number" id="amount" required>
+                </div>
+                <div class="button-group">
+                    <button type="submit" class="btn-submit">Simpan</button>
+                    <button type="reset" class="btn-reset">Reset</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="transactions">
+            <h2>Daftar Transaksi</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Keterangan</th>
+                        <th>Jenis</th>
+                        <th>Jumlah</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="loading">
+        <div>Loading...</div>
+    </div>
+
+    <script>
+        // Konfigurasi
+        const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwE19k53xPQZnT39ubSoED9lrX0fI5lmox92gzbtRXqejVVKQSAA96vJ3cePzgvuI1vog/exec'; // Ganti dengan URL deployment Apps Script Anda
+
+        // Format currency
+        const formatCurrency = (amount) => {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR'
+            }).format(amount);
+        };
+
+        // Format tanggal
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toISOString().split('T')[0];
+        }
+
+        // Loading indicator
+        const showLoading = () => document.querySelector('.loading').style.display = 'flex';
+        const hideLoading = () => document.querySelector('.loading').style.display = 'none';
+
+        // Fungsi untuk memuat data
+        async function loadTransactions() {
+            showLoading();
+            try {
+                const response = await fetch(`${SHEET_URL}?action=read`);
+                const result = await response.json();
+                console.log('Data loaded:', result);
+                
+                if (result.success) {
+                    renderTransactions(result.data);
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('Gagal memuat data: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Fungsi untuk menampilkan data
+        function renderTransactions(transactions) {
+            const tbody = document.getElementById('transactionList');
+            tbody.innerHTML = '';
+
+            let totalBalance = 0;
+
+            if (!Array.isArray(transactions)) {
+                console.error('Transactions is not an array:', transactions);
+                return;
+            }
+
+            transactions.forEach(transaction => {
+                const amount = parseFloat(transaction.amount);
+                if (transaction.type === 'income') {
+                    totalBalance += amount;
+                } else {
+                    totalBalance -= amount;
+                }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${formatDate(transaction.date)}</td>
+                    <td>${transaction.description}</td>
+                    <td>${transaction.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}</td>
+                    <td>${formatCurrency(amount)}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-edit" onclick="editTransaction('${transaction.id}')">Edit</button>
+                            <button class="btn-delete" onclick="deleteTransactionHandler('${transaction.id}')">Hapus</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('totalBalance').textContent = formatCurrency(totalBalance);
+        }
+
+        // Fungsi untuk edit transaksi
+        async function editTransaction(id) {
+            showLoading();
+            try {
+                const response = await fetch(`${SHEET_URL}?action=read&id=${id}`);
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    const transaction = result.data;
+                    document.getElementById('editId').value = transaction.id;
+                    document.getElementById('date').value = formatDate(transaction.date);
+                    document.getElementById('description').value = transaction.description;
+                    document.getElementById('type').value = transaction.type;
+                    document.getElementById('amount').value = transaction.amount;
+                } else {
+                    throw new Error(result.message || 'Transaksi tidak ditemukan');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Gagal mengambil data: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Fungsi untuk menghapus transaksi
+        async function deleteTransactionHandler(id) {
+            if (!confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) {
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch(`${SHEET_URL}?action=delete`, {
+                    method: 'POST',
+                    body: JSON.stringify({ id })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Transaksi berhasil dihapus');
+                    await loadTransactions();
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Gagal menghapus data: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Event listener untuk form
+        document.getElementById('transactionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showLoading();
+
+            const formData = {
+                id: document.getElementById('editId').value,
+                date: document.getElementById('date').value,
+                description: document.getElementById('description').value,
+                type: document.getElementById('type').value,
+                amount: document.getElementById('amount').value
+            };
+
+            try {
+                const action = formData.id ? 'update' : 'create';
+                const response = await fetch(`${SHEET_URL}?action=${action}`, {
+                    method: 'POST',
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                console.log('Save result:', result);
+                
+                if (result.success) {
+                    alert(action === 'create' ? 'Data berhasil disimpan' : 'Data berhasil diperbarui');
+                    document.getElementById('transactionForm').reset();
+                    document.getElementById('editId').value = '';
+                    const today = new Date().toISOString().split('T')[0];
+                    document.getElementById('date').value = today;
+                    await loadTransactions();
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error('Error saving data:', error);
+                alert('Gagal menyimpan data: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // Reset form handler
+        document.getElementById('transactionForm').addEventListener('reset', () => {
+            document.getElementById('editId').value = '';
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+            loadTransactions();
+        });
+    </script>
+</body>
+</html>
