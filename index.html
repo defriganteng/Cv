@@ -162,6 +162,14 @@
                 flex-direction: column;
             }
         }
+        .hidden {
+            display: none;
+        }
+        .btn-cancel {
+            background-color: #f39c12;
+            color: white;
+            flex: 1;
+        }
     </style>
 </head>
 <body>
@@ -196,6 +204,7 @@
                 <div class="button-group">
                     <button type="submit" class="btn-submit">Simpan</button>
                     <button type="reset" class="btn-reset">Reset</button>
+                    <button type="button" class="btn-cancel hidden" id="cancelButton">Batal Edit</button>
                 </div>
             </form>
         </div>
@@ -317,6 +326,9 @@
                     document.getElementById('description').value = transaction.description;
                     document.getElementById('type').value = transaction.type;
                     document.getElementById('amount').value = transaction.amount;
+                    document.getElementById('resetButton').classList.add('hidden');
+                    document.getElementById('cancelButton').classList.remove('hidden');
+                }
                 } else {
                     throw new Error(result.message || 'Transaksi tidak ditemukan');
                 }
@@ -355,6 +367,10 @@
                 hideLoading();
             }
         }
+
+        document.getElementById('cancelButton').addEventListener('click', () => {
+            document.getElementById('transactionForm').reset();
+        });
 
         // Event listener untuk form
         document.getElementById('transactionForm').addEventListener('submit', async (e) => {
@@ -402,6 +418,8 @@
             document.getElementById('editId').value = '';
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('date').value = today;
+            document.getElementById('resetButton').classList.remove('hidden');
+            document.getElementById('cancelButton').classList.add('hidden');
         });
 
         // Initialize
