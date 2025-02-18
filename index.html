@@ -130,6 +130,21 @@
             padding: 5px 10px;
         }
 
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 20px;
+            z-index: 1000;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 10px;
@@ -146,20 +161,6 @@
             .action-buttons {
                 flex-direction: column;
             }
-        }
-
-        .loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 20px;
         }
     </style>
 </head>
@@ -222,8 +223,8 @@
 
     <script>
         // Konfigurasi
-        const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwE19k53xPQZnT39ubSoED9lrX0fI5lmox92gzbtRXqejVVKQSAA96vJ3cePzgvuI1vog/exec';
-        
+        const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwE19k53xPQZnT39ubSoED9lrX0fI5lmox92gzbtRXqejVVKQSAA96vJ3cePzgvuI1vog/exec'; // Ganti dengan URL deployment Apps Script Anda
+
         // Format currency
         const formatCurrency = (amount) => {
             return new Intl.NumberFormat('id-ID', {
@@ -232,103 +233,48 @@
             }).format(amount);
         };
 
+        // Format tanggal
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toISOString().split('T')[0];
+        }
+
         // Loading indicator
         const showLoading = () => document.querySelector('.loading').style.display = 'flex';
         const hideLoading = () => document.querySelector('.loading').style.display = 'none';
 
-        // Fetch data from Google Sheets
-        const fetchTransactions = async () => {
+        // Fungsi untuk memuat data
+        async function loadTransactions() {
             showLoading();
             try {
                 const response = await fetch(`${SHEET_URL}?action=read`);
-                const data = await response.json();
-                return data;
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Gagal mengambil data');
-                return [];
-            } finally {
-                hideLoading();
-            }
-        };
-
-        // Save transaction
-        const saveTransaction = async (transaction) => {
-            showLoading();
-            try {
-                const response = await fetch(`${SHEET_URL}?action=create`, {
-                    method: 'POST',
-                    body: JSON.stringify(transaction)
-                });
-                const data = await response.json();
-                if (data.success) {
-                    alert('Data berhasil disimpan');
-                    return true;
+                const result = await response.json();
+                console.log('Data loaded:', result);
+                
+                if (result.success) {
+                    renderTransactions(result.data);
+                } else {
+                    throw new Error(result.message);
                 }
-                throw new Error('Gagal menyimpan data');
             } catch (error) {
-                console.error('Error:', error);
-                alert('Gagal menyimpan data');
-                return false;
+                console.error('Error loading data:', error);
+                alert('Gagal memuat data: ' + error.message);
             } finally {
                 hideLoading();
             }
-        };
+        }
 
-        // Update transaction
-        const updateTransaction = async (transaction) => {
-            showLoading();
-            try {
-                const response = await fetch(`${SHEET_URL}?action=update`, {
-                    method: 'POST',
-                    body: JSON.stringify(transaction)
-                });
-                const data = await response.json();
-                if (data.success) {
-                    alert('Data berhasil diperbarui');
-                    return true;
-                }
-                throw new Error('Gagal memperbarui data');
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Gagal memperbarui data');
-                return false;
-            } finally {
-                hideLoading();
-            }
-        };
-
-        // Delete transaction
-        const deleteTransaction = async (id) => {
-            if (!confirm('Apakah Anda yakin ingin menghapus data ini?')) return false;
-            
-            showLoading();
-            try {
-                const response = await fetch(`${SHEET_URL}?action=delete`, {
-                    method: 'POST',
-                    body: JSON.stringify({ id })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    alert('Data berhasil dihapus');
-                    return true;
-                }
-                throw new Error('Gagal menghapus data');
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Gagal menghapus data');
-                return false;
-            } finally {
-                hideLoading();
-            }
-        };
-
-        // Render transactions
-        const renderTransactions = (transactions) => {
+        // Fungsi untuk menampilkan data
+        function renderTransactions(transactions) {
             const tbody = document.getElementById('transactionList');
             tbody.innerHTML = '';
 
             let totalBalance = 0;
+
+            if (!Array.isArray(transactions)) {
+                console.error('Transactions is not an array:', transactions);
+                return;
+            }
 
             transactions.forEach(transaction => {
                 const amount = parseFloat(transaction.amount);
@@ -340,7 +286,7 @@
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${transaction.date}</td>
+                    <td>${formatDate(transaction.date)}</td>
                     <td>${transaction.description}</td>
                     <td>${transaction.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}</td>
                     <td>${formatCurrency(amount)}</td>
@@ -355,75 +301,115 @@
             });
 
             document.getElementById('totalBalance').textContent = formatCurrency(totalBalance);
-        };
+        }
 
-        // Load data
-        const loadTransactions = async () => {
-            const transactions = await fetchTransactions();
-            renderTransactions(transactions);
-        };
+        // Fungsi untuk edit transaksi
+        async function editTransaction(id) {
+            showLoading();
+            try {
+                const response = await fetch(`${SHEET_URL}?action=read&id=${id}`);
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    const transaction = result.data;
+                    document.getElementById('editId').value = transaction.id;
+                    document.getElementById('date').value = formatDate(transaction.date);
+                    document.getElementById('description').value = transaction.description;
+                    document.getElementById('type').value = transaction.type;
+                    document.getElementById('amount').value = transaction.amount;
+                } else {
+                    throw new Error(result.message || 'Transaksi tidak ditemukan');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Gagal mengambil data: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
 
-        // Form handlers
-        const form = document.getElementById('transactionForm');
-        const editId = document.getElementById('editId');
+        // Fungsi untuk menghapus transaksi
+        async function deleteTransactionHandler(id) {
+            if (!confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) {
+                return;
+            }
 
-        form.addEventListener('submit', async (e) => {
+            showLoading();
+            try {
+                const response = await fetch(`${SHEET_URL}?action=delete`, {
+                    method: 'POST',
+                    body: JSON.stringify({ id })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Transaksi berhasil dihapus');
+                    await loadTransactions();
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Gagal menghapus data: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Event listener untuk form
+        document.getElementById('transactionForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            showLoading();
 
-            const transaction = {
-                id: editId.value,
+            const formData = {
+                id: document.getElementById('editId').value,
                 date: document.getElementById('date').value,
                 description: document.getElementById('description').value,
                 type: document.getElementById('type').value,
                 amount: document.getElementById('amount').value
             };
 
-            let success;
-            if (editId.value) {
-                success = await updateTransaction(transaction);
-            } else {
-                success = await saveTransaction(transaction);
-            }
-
-            if (success) {
-                form.reset();
-                editId.value = '';
-                loadTransactions();
-            }
-        });
-
-        // Edit transaction
-        window.editTransaction = async (id) => {
-            showLoading();
             try {
-                const response = await fetch(`${SHEET_URL}?action=read&id=${id}`);
-                const data = await response.json();
+                const action = formData.id ? 'update' : 'create';
+                const response = await fetch(`${SHEET_URL}?action=${action}`, {
+                    method: 'POST',
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                console.log('Save result:', result);
                 
-                if (data) {
-                    editId.value = data.id;
-                    document.getElementById('date').value = data.date;
-                    document.getElementById('description').value = data.description;
-                    document.getElementById('type').value = data.type;
-                    document.getElementById('amount').value = data.amount;
+                if (result.success) {
+                    alert(action === 'create' ? 'Data berhasil disimpan' : 'Data berhasil diperbarui');
+                    document.getElementById('transactionForm').reset();
+                    document.getElementById('editId').value = '';
+                    const today = new Date().toISOString().split('T')[0];
+                    document.getElementById('date').value = today;
+                    await loadTransactions();
+                } else {
+                    throw new Error(result.message);
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert('Gagal mengambil data');
+                console.error('Error saving data:', error);
+                alert('Gagal menyimpan data: ' + error.message);
             } finally {
                 hideLoading();
             }
-        };
+        });
 
-        // Delete transaction handler
-        window.deleteTransactionHandler = async (id) => {
-            const success = await deleteTransaction(id);
-            if (success) {
-                loadTransactions();
-            }
-        };
+        // Reset form handler
+        document.getElementById('transactionForm').addEventListener('reset', () => {
+            document.getElementById('editId').value = '';
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+        });
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', loadTransactions);
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+            loadTransactions();
+        });
     </script>
 </body>
 </html>
