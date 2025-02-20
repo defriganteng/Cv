@@ -140,13 +140,33 @@
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-xl font-semibold text-gray-800">Riwayat Transaksi</h2>
                         <div class="flex gap-2">
-                            <button id="downloadPdfBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded focus:outline-none focus:shadow-outline flex items-center">
-                                <i class="fas fa-file-pdf mr-2"></i> Download PDF
-                            </button>
-                            <button id="refreshBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-1 px-3 rounded focus:outline-none focus:shadow-outline flex items-center">
-                                <i class="fas fa-sync-alt mr-2"></i> Refresh
-                            </button>
-                        </div>
+    <div class="flex items-center gap-2">
+        <select id="monthFilter" class="bg-white border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">Semua Bulan</option>
+            <option value="01">Januari</option>
+            <option value="02">Februari</option>
+            <option value="03">Maret</option>
+            <option value="04">April</option>
+            <option value="05">Mei</option>
+            <option value="06">Juni</option>
+            <option value="07">Juli</option>
+            <option value="08">Agustus</option>
+            <option value="09">September</option>
+            <option value="10">Oktober</option>
+            <option value="11">November</option>
+            <option value="12">Desember</option>
+        </select>
+        <select id="yearFilter" class="bg-white border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">Semua Tahun</option>
+        </select>
+    </div>
+    <button id="downloadPdfBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded focus:outline-none focus:shadow-outline flex items-center">
+        <i class="fas fa-file-pdf mr-2"></i> Download PDF
+    </button>
+    <button id="refreshBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-1 px-3 rounded focus:outline-none focus:shadow-outline flex items-center">
+        <i class="fas fa-sync-alt mr-2"></i> Refresh
+    </button>
+</div>
                     </div>
                     
                     <div id="tableContainer">
@@ -551,79 +571,158 @@
 
 
       // New PDF download function
-        function downloadPDF() {
-            // Initialize jsPDF
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({
-                orientation: 'landscape',
-                unit: 'mm',
-                format: 'a4'
-            });
+        function populateYearOptions() {
+    const yearFilter = document.getElementById('yearFilter');
+    const currentYear = new Date().getFullYear();
+    const startYear = 2020; // You can adjust this as needed
+    
+    for (let year = currentYear; year >= startYear; year--) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        yearFilter.appendChild(option);
+    }
+}
 
-            // Set font
-            doc.setFont('helvetica');
-
-            // Add title
-            doc.setFontSize(18);
-            doc.text('Laporan Transaksi', 15, 15);
-
-            // Add report date
-            doc.setFontSize(10);
-            const today = new Date();
-            doc.text(`Tanggal Laporan: ${today.toLocaleDateString('id-ID')}`, 15, 22);
-
-            // Add financial summary
-            doc.text(`Total Pemasukan: ${document.getElementById('totalIncome').textContent}`, 15, 29);
-            doc.text(`Total Pengeluaran: ${document.getElementById('totalExpense').textContent}`, 15, 36);
-            doc.text(`Saldo: ${document.getElementById('balance').textContent}`, 15, 43);
-
-            // Prepare table data
-            const tableData = transactions.map(transaction => {
-                const dateObj = new Date(transaction.date);
-                const formattedDate = `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`;
-                
-                return [
-                    formattedDate,
-                    transaction.description,
-                    transaction.income ? formatRupiah(transaction.income) : '',
-                    transaction.expense ? formatRupiah(transaction.expense) : ''
-                ];
-            });
-
-            // Create table
-            doc.autoTable({
-                startY: 50,
-                head: [['Tanggal', 'Keterangan', 'Pemasukan', 'Pengeluaran']],
-                body: tableData,
-                theme: 'grid',
-                headStyles: {
-                    fillColor: [51, 122, 183],
-                    textColor: 255
-                },
-                styles: {
-                    fontSize: 8,
-                    cellPadding: 3
-                },
-                columnStyles: {
-                    0: { cellWidth: 25 },
-                    1: { cellWidth: 'auto' },
-                    2: { cellWidth: 35, halign: 'right' },
-                    3: { cellWidth: 35, halign: 'right' }
-                }
-            });
-
-            // Add footer with page numbers
-            const pageCount = doc.internal.getNumberOfPages();
-            for(let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                doc.setFontSize(8);
-                doc.text(`Halaman ${i} dari ${pageCount}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 10);
-            }
-
-            // Download PDF
-            doc.save('laporan-transaksi.pdf');
+// Add this function to filter transactions
+function filterTransactions(transactions, month, year) {
+    return transactions.filter(transaction => {
+        const transDate = new Date(transaction.date);
+        const transMonth = (transDate.getMonth() + 1).toString().padStart(2, '0');
+        const transYear = transDate.getFullYear().toString();
+        
+        if (month && year) {
+            return transMonth === month && transYear === year;
+        } else if (month) {
+            return transMonth === month;
+        } else if (year) {
+            return transYear === year;
         }
+        return true;
+    });
+}
 
+// Add this function to calculate filtered totals
+function calculateFilteredTotals(filteredTransactions) {
+    return filteredTransactions.reduce((totals, transaction) => {
+        if (transaction.income) {
+            totals.income += parseFloat(transaction.income);
+        }
+        if (transaction.expense) {
+            totals.expense += parseFloat(transaction.expense);
+        }
+        return totals;
+    }, { income: 0, expense: 0 });
+}
+
+// Updated downloadPDF function
+function downloadPDF() {
+    const monthFilter = document.getElementById('monthFilter').value;
+    const yearFilter = document.getElementById('yearFilter').value;
+    
+    // Filter transactions
+    const filteredTransactions = filterTransactions(transactions, monthFilter, yearFilter);
+    
+    // Calculate filtered totals
+    const filteredTotals = calculateFilteredTotals(filteredTransactions);
+    
+    // Initialize jsPDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
+    });
+
+    // Set font
+    doc.setFont('helvetica');
+
+    // Add title
+    doc.setFontSize(18);
+    doc.text('Laporan Transaksi', 15, 15);
+
+    // Add report date and filter info
+    doc.setFontSize(10);
+    const today = new Date();
+    doc.text(`Tanggal Laporan: ${today.toLocaleDateString('id-ID')}`, 15, 22);
+    
+    // Add filter information
+    let filterText = 'Filter: ';
+    if (monthFilter) {
+        const monthName = new Date(2024, parseInt(monthFilter) - 1, 1).toLocaleString('id-ID', { month: 'long' });
+        filterText += monthName + ' ';
+    }
+    if (yearFilter) {
+        filterText += yearFilter;
+    }
+    if (!monthFilter && !yearFilter) {
+        filterText += 'Semua Periode';
+    }
+    doc.text(filterText, 15, 29);
+
+    // Add financial summary
+    doc.text(`Total Pemasukan: ${formatRupiah(filteredTotals.income)}`, 15, 36);
+    doc.text(`Total Pengeluaran: ${formatRupiah(filteredTotals.expense)}`, 15, 43);
+    doc.text(`Saldo: ${formatRupiah(filteredTotals.income - filteredTotals.expense)}`, 15, 50);
+
+    // Prepare table data
+    const tableData = filteredTransactions.map(transaction => {
+        const dateObj = new Date(transaction.date);
+        const formattedDate = `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`;
+        
+        return [
+            formattedDate,
+            transaction.description,
+            transaction.income ? formatRupiah(transaction.income) : '',
+            transaction.expense ? formatRupiah(transaction.expense) : ''
+        ];
+    });
+
+    // Create table
+    doc.autoTable({
+        startY: 57,
+        head: [['Tanggal', 'Keterangan', 'Pemasukan', 'Pengeluaran']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: {
+            fillColor: [51, 122, 183],
+            textColor: 255
+        },
+        styles: {
+            fontSize: 8,
+            cellPadding: 3
+        },
+        columnStyles: {
+            0: { cellWidth: 25 },
+            1: { cellWidth: 'auto' },
+            2: { cellWidth: 35, halign: 'right' },
+            3: { cellWidth: 35, halign: 'right' }
+        }
+    });
+
+    // Add footer with page numbers
+    const pageCount = doc.internal.getNumberOfPages();
+    for(let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.text(`Halaman ${i} dari ${pageCount}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 10);
+    }
+
+    // Generate filename with filter info
+    let filename = 'laporan-transaksi';
+    if (monthFilter) {
+        const monthName = new Date(2024, parseInt(monthFilter) - 1, 1).toLocaleString('id-ID', { month: 'long' });
+        filename += `-${monthName}`;
+    }
+    if (yearFilter) {
+        filename += `-${yearFilter}`;
+    }
+    filename += '.pdf';
+
+    // Download PDF
+    doc.save(filename);
+}
+            
 
 
       
@@ -736,6 +835,16 @@
                 }
             });
           document.getElementById('downloadPdfBtn').addEventListener('click', downloadPDF);
+            populateYearOptions();
+    
+    // Add event listeners for filters
+    document.getElementById('monthFilter').addEventListener('change', () => {
+        // You can add additional functionality here if needed
+    });
+    
+    document.getElementById('yearFilter').addEventListener('change', () => {
+        // You can add additional functionality here if needed
+    });
         });
     </script>
 </body>
