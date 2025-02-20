@@ -35,6 +35,19 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
+
+        /* New responsive button styles */
+        @media (max-width: 640px) {
+            .action-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
+                width: 100%;
+            }
+            .action-buttons button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -137,14 +150,16 @@
 
             <div class="lg:col-span-3">
                 <div class="bg-white rounded-lg shadow-md p-6">
-                    <div class="flex justify-between items-center mb-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4 sm:gap-0">
                         <h2 class="text-xl font-semibold text-gray-800">Riwayat Transaksi</h2>
-                        <div class="flex gap-2">
-                            <button id="downloadPdfBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded focus:outline-none focus:shadow-outline flex items-center">
-                                <i class="fas fa-file-pdf mr-2"></i> Download PDF
+                        <div class="action-buttons flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                            <button id="downloadPdfBtn" class="inline-flex items-center justify-center px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded focus:outline-none focus:shadow-outline w-full sm:w-auto">
+                                <i class="fas fa-file-pdf mr-2"></i>
+                                <span class="whitespace-nowrap">Download PDF</span>
                             </button>
-                            <button id="refreshBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-1 px-3 rounded focus:outline-none focus:shadow-outline flex items-center">
-                                <i class="fas fa-sync-alt mr-2"></i> Refresh
+                            <button id="refreshBtn" class="inline-flex items-center justify-center px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded focus:outline-none focus:shadow-outline w-full sm:w-auto">
+                                <i class="fas fa-sync-alt mr-2"></i>
+                                <span class="whitespace-nowrap">Refresh</span>
                             </button>
                         </div>
                     </div>
