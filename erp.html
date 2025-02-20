@@ -268,6 +268,66 @@
         </div>
     </div>
 
+
+
+<!-- Add this modal before the closing body tag -->
+<div id="downloadFilterModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold">Filter Laporan</h3>
+            <button id="closeFilterModal" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form id="downloadFilterForm">
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="filterMonth">
+                    Bulan
+                </label>
+                <select id="filterMonth" name="filterMonth" required
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="">Pilih Bulan</option>
+                    <option value="01">Januari</option>
+                    <option value="02">Februari</option>
+                    <option value="03">Maret</option>
+                    <option value="04">April</option>
+                    <option value="05">Mei</option>
+                    <option value="06">Juni</option>
+                    <option value="07">Juli</option>
+                    <option value="08">Agustus</option>
+                    <option value="09">September</option>
+                    <option value="10">Oktober</option>
+                    <option value="11">November</option>
+                    <option value="12">Desember</option>
+                </select>
+            </div>
+            
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="filterYear">
+                    Tahun
+                </label>
+                <select id="filterYear" name="filterYear" required
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="">Pilih Tahun</option>
+                </select>
+            </div>
+            
+            <div class="flex items-center justify-end">
+                <button type="button" id="cancelFilter"
+                    class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mr-2">
+                    Batal
+                </button>
+                <button type="submit"
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Download PDF
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+    
     <script>
         // Konfigurasi untuk Google Apps Script
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwlH1A8xC94pG95QiuCVExbLrcByMw_Kibq8vyzrrFygXEg8B1DH5_naGeMjcBq8iSzMw/exec';
@@ -551,78 +611,122 @@
 
 
       // New PDF download function
-        function downloadPDF() {
-            // Initialize jsPDF
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({
-                orientation: 'landscape',
-                unit: 'mm',
-                format: 'a4'
-            });
+         // Add these new functions for filter modal
+function populateYearOptions() {
+    const yearSelect = document.getElementById('filterYear');
+    const currentYear = new Date().getFullYear();
+    const startYear = 2020; // You can adjust this year as needed
+    
+    for (let year = currentYear; year >= startYear; year--) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        yearSelect.appendChild(option);
+    }
+}
 
-            // Set font
-            doc.setFont('helvetica');
+function openFilterModal() {
+    document.getElementById('downloadFilterModal').classList.remove('hidden');
+}
 
-            // Add title
-            doc.setFontSize(18);
-            doc.text('Laporan Transaksi', 15, 15);
+function closeFilterModal() {
+    document.getElementById('downloadFilterModal').classList.add('hidden');
+}
 
-            // Add report date
-            doc.setFontSize(10);
-            const today = new Date();
-            doc.text(`Tanggal Laporan: ${today.toLocaleDateString('id-ID')}`, 15, 22);
+// Modified downloadPDF function to accept filter parameters
+function downloadPDF(month, year) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
+    });
 
-            // Add financial summary
-            doc.text(`Total Pemasukan: ${document.getElementById('totalIncome').textContent}`, 15, 29);
-            doc.text(`Total Pengeluaran: ${document.getElementById('totalExpense').textContent}`, 15, 36);
-            doc.text(`Saldo: ${document.getElementById('balance').textContent}`, 15, 43);
+    // Filter transactions based on month and year
+    const filteredTransactions = transactions.filter(transaction => {
+        const transDate = new Date(transaction.date);
+        return (
+            transDate.getMonth() + 1 === parseInt(month) &&
+            transDate.getFullYear() === parseInt(year)
+        );
+    });
 
-            // Prepare table data
-            const tableData = transactions.map(transaction => {
-                const dateObj = new Date(transaction.date);
-                const formattedDate = `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`;
-                
-                return [
-                    formattedDate,
-                    transaction.description,
-                    transaction.income ? formatRupiah(transaction.income) : '',
-                    transaction.expense ? formatRupiah(transaction.expense) : ''
-                ];
-            });
-
-            // Create table
-            doc.autoTable({
-                startY: 50,
-                head: [['Tanggal', 'Keterangan', 'Pemasukan', 'Pengeluaran']],
-                body: tableData,
-                theme: 'grid',
-                headStyles: {
-                    fillColor: [51, 122, 183],
-                    textColor: 255
-                },
-                styles: {
-                    fontSize: 8,
-                    cellPadding: 3
-                },
-                columnStyles: {
-                    0: { cellWidth: 25 },
-                    1: { cellWidth: 'auto' },
-                    2: { cellWidth: 35, halign: 'right' },
-                    3: { cellWidth: 35, halign: 'right' }
-                }
-            });
-
-            // Add footer with page numbers
-            const pageCount = doc.internal.getNumberOfPages();
-            for(let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                doc.setFontSize(8);
-                doc.text(`Halaman ${i} dari ${pageCount}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 10);
-            }
-
-            // Download PDF
-            doc.save('laporan-transaksi.pdf');
+    // Calculate filtered totals
+    let filteredIncome = 0;
+    let filteredExpense = 0;
+    filteredTransactions.forEach(transaction => {
+        if (transaction.income) {
+            filteredIncome += parseFloat(transaction.income);
         }
+        if (transaction.expense) {
+            filteredExpense += parseFloat(transaction.expense);
+        }
+    });
+
+    // Set font
+    doc.setFont('helvetica');
+
+    // Add title
+    doc.setFontSize(18);
+    doc.text('Laporan Transaksi', 15, 15);
+
+    // Add report date and filter info
+    doc.setFontSize(10);
+    const today = new Date();
+    const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    doc.text(`Tanggal Laporan: ${today.toLocaleDateString('id-ID')}`, 15, 22);
+    doc.text(`Periode: ${monthNames[parseInt(month) - 1]} ${year}`, 15, 29);
+
+    // Add filtered financial summary
+    doc.text(`Total Pemasukan: ${formatRupiah(filteredIncome)}`, 15, 36);
+    doc.text(`Total Pengeluaran: ${formatRupiah(filteredExpense)}`, 15, 43);
+
+    // Prepare filtered table data
+    const tableData = filteredTransactions.map(transaction => {
+        const dateObj = new Date(transaction.date);
+        const formattedDate = `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`;
+        
+        return [
+            formattedDate,
+            transaction.description,
+            transaction.income ? formatRupiah(transaction.income) : '',
+            transaction.expense ? formatRupiah(transaction.expense) : ''
+        ];
+    });
+
+    // Create table
+    doc.autoTable({
+        startY: 50,
+        head: [['Tanggal', 'Keterangan', 'Pemasukan', 'Pengeluaran']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: {
+            fillColor: [51, 122, 183],
+            textColor: 255
+        },
+        styles: {
+            fontSize: 8,
+            cellPadding: 3
+        },
+        columnStyles: {
+            0: { cellWidth: 25 },
+            1: { cellWidth: 'auto' },
+            2: { cellWidth: 35, halign: 'right' },
+            3: { cellWidth: 35, halign: 'right' }
+        }
+    });
+
+    // Add footer with page numbers
+    const pageCount = doc.internal.getNumberOfPages();
+    for(let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.text(`Halaman ${i} dari ${pageCount}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 10);
+    }
+
+    // Download PDF with month and year in filename
+    doc.save(`laporan-transaksi-${monthNames[parseInt(month) - 1]}-${year}.pdf`);
+}
 
 
 
@@ -735,7 +839,36 @@
                     }
                 }
             });
-          document.getElementById('downloadPdfBtn').addEventListener('click', downloadPDF);
+
+            // Initialize year options
+    populateYearOptions();
+
+    // Download button now opens filter modal
+    document.getElementById('downloadPdfBtn').addEventListener('click', openFilterModal);
+
+    // Filter modal events
+    document.getElementById('closeFilterModal').addEventListener('click', closeFilterModal);
+    document.getElementById('cancelFilter').addEventListener('click', closeFilterModal);
+
+    // Handle filter form submission
+    document.getElementById('downloadFilterForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const month = document.getElementById('filterMonth').value;
+        const year = document.getElementById('filterYear').value;
+
+        if (!month || !year) {
+            alert('Silakan pilih bulan dan tahun');
+            return;
+        }
+
+        downloadPDF(month, year);
+        closeFilterModal();
+    });
+
+
+
+
+            
         });
     </script>
 </body>
