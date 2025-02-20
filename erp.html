@@ -163,6 +163,41 @@
                             </button>
                         </div>
                     </div>
+
+<!-- New Filter Section -->
+            <div class="mb-6 bg-gray-50 p-4 rounded-lg">
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <div class="flex-1">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="filterMonth">
+                            Bulan
+                        </label>
+                        <select id="filterMonth" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <option value="">Semua Bulan</option>
+                            <option value="01">Januari</option>
+                            <option value="02">Februari</option>
+                            <option value="03">Maret</option>
+                            <option value="04">April</option>
+                            <option value="05">Mei</option>
+                            <option value="06">Juni</option>
+                            <option value="07">Juli</option>
+                            <option value="08">Agustus</option>
+                            <option value="09">September</option>
+                            <option value="10">Oktober</option>
+                            <option value="11">November</option>
+                            <option value="12">Desember</option>
+                        </select>
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="filterYear">
+                            Tahun
+                        </label>
+                        <select id="filterYear" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <option value="">Semua Tahun</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+                    
                     
                     <div id="tableContainer">
                         <div class="overflow-x-auto">
@@ -498,53 +533,85 @@
                 hideLoading();
             }
         }
+
+// Populate year options
+                function populateYearOptions() {
+                    const yearSelect = document.getElementById('filterYear');
+                    const currentYear = new Date().getFullYear();
+                    const startYear = 2020; // You can adjust this year as needed
+                    
+                    yearSelect.innerHTML = '<option value="">Semua Tahun</option>';
+                    for (let year = currentYear; year >= startYear; year--) {
+                        const option = document.createElement('option');
+                        option.value = year;
+                        option.textContent = year;
+                        yearSelect.appendChild(option);
+                    }
+                }
+
+
         
-        // Render data transaksi ke tabel
-        function renderTransactions() {
-            const tbody = document.getElementById('transactionTableBody');
-            const noTransactions = document.getElementById('noTransactions');
-            
-            if (transactions.length === 0) {
-                tbody.innerHTML = '';
-                noTransactions.style.display = 'block';
-                return;
-            }
-            
-            noTransactions.style.display = 'none';
-            
-            // Sort transactions by date (newest first)
-            transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-            
-            tbody.innerHTML = '';
-            transactions.forEach((transaction, index) => {
-                const row = document.createElement('tr');
-                row.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
-                
-                // Format date (YYYY-MM-DD to DD/MM/YYYY)
-                const dateObj = new Date(transaction.date);
-                const formattedDate = `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`;
-                
-                row.innerHTML = `
-                    <td class="py-3 px-4 border-b border-gray-200">${formattedDate}</td>
-                    <td class="py-3 px-4 border-b border-gray-200">${transaction.description}</td>
-                    <td class="py-3 px-4 border-b border-gray-200 text-green-600">
-                        ${transaction.income ? formatRupiah(transaction.income) : ''}
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-200 text-red-600">
-                        ${transaction.expense ? formatRupiah(transaction.expense) : ''}
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-200">
-                        <button class="text-blue-500 hover:text-blue-700 mr-3 edit-btn" data-id="${transaction.id}">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="text-red-500 hover:text-red-700 delete-btn" data-id="${transaction.id}">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                
-                tbody.appendChild(row);
-            });
+        // Modified renderTransactions function with filtering
+                function renderTransactions() {
+                    const tbody = document.getElementById('transactionTableBody');
+                    const noTransactions = document.getElementById('noTransactions');
+                    
+                    const filterMonth = document.getElementById('filterMonth').value;
+                    const filterYear = document.getElementById('filterYear').value;
+                    
+                    let filteredTransactions = [...transactions];
+                    
+                    // Apply filters
+                    if (filterMonth || filterYear) {
+                        filteredTransactions = transactions.filter(transaction => {
+                            const transDate = new Date(transaction.date);
+                            const monthMatch = !filterMonth || (transDate.getMonth() + 1).toString().padStart(2, '0') === filterMonth;
+                            const yearMatch = !filterYear || transDate.getFullYear().toString() === filterYear;
+                            return monthMatch && yearMatch;
+                        });
+                    }
+                    
+                    if (filteredTransactions.length === 0) {
+                        tbody.innerHTML = '';
+                        noTransactions.style.display = 'block';
+                        return;
+                    }
+                    
+                    noTransactions.style.display = 'none';
+                    
+                    // Sort transactions by date (newest first)
+                    filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    
+                    tbody.innerHTML = '';
+                    filteredTransactions.forEach((transaction, index) => {
+                        // Previous row rendering code remains the same
+                        const row = document.createElement('tr');
+                        row.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                        
+                        const dateObj = new Date(transaction.date);
+                        const formattedDate = `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`;
+                        
+                        row.innerHTML = `
+                            <td class="py-3 px-4 border-b border-gray-200">${formattedDate}</td>
+                            <td class="py-3 px-4 border-b border-gray-200">${transaction.description}</td>
+                            <td class="py-3 px-4 border-b border-gray-200 text-green-600">
+                                ${transaction.income ? formatRupiah(transaction.income) : ''}
+                            </td>
+                            <td class="py-3 px-4 border-b border-gray-200 text-red-600">
+                                ${transaction.expense ? formatRupiah(transaction.expense) : ''}
+                            </td>
+                            <td class="py-3 px-4 border-b border-gray-200">
+                                <button class="text-blue-500 hover:text-blue-700 mr-3 edit-btn" data-id="${transaction.id}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="text-red-500 hover:text-red-700 delete-btn" data-id="${transaction.id}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        `;
+                        
+                        tbody.appendChild(row);
+                    });
             
             // Menambahkan event listener untuk tombol edit dan delete
             document.querySelectorAll('.edit-btn').forEach(button => {
@@ -857,6 +924,10 @@ function downloadPDF(month, year) {
 
             // Initialize year options
     populateYearOptions();
+
+            // Add filter change event listeners
+                    document.getElementById('filterMonth').addEventListener('change', renderTransactions);
+                    document.getElementById('filterYear').addEventListener('change', renderTransactions);
 
     // Download button now opens filter modal
     document.getElementById('downloadPdfBtn').addEventListener('click', openFilterModal);
