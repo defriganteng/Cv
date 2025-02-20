@@ -102,32 +102,45 @@
                     <h2 class="text-xl font-semibold mb-4 text-gray-800">Tambah Transaksi</h2>
                     <form id="transactionForm">
                         <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="date">
-                                Tanggal
-                            </label>
-                            <input type="date" id="date" name="date" required
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
-                                Keterangan
-                            </label>
-                            <input type="text" id="description" name="description" required placeholder="Keterangan transaksi"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="type">
-                                Jenis Transaksi
-                            </label>
-                            <select id="type" name="type" required
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                                <option value="">Pilih jenis transaksi</option>
-                                <option value="income">Pemasukan</option>
-                                <option value="expense">Pengeluaran</option>
-                            </select>
-                        </div>
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="date">
+                Tanggal
+            </label>
+            <input type="date" id="date" name="date" required
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
+                Keterangan
+            </label>
+            <input type="text" id="description" name="description" required placeholder="Keterangan transaksi"
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="category">
+                Kategori
+            </label>
+            <select id="category" name="category" required
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <option value="">Pilih kategori</option>
+                <option value="kas">Kas</option>
+                <option value="pendapatan">Pendapatan</option>
+                <option value="beban">Beban</option>
+            </select>
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="type">
+                Jenis Transaksi
+            </label>
+            <select id="type" name="type" required
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <option value="">Pilih jenis transaksi</option>
+                <option value="income">Pemasukan</option>
+                <option value="expense">Pengeluaran</option>
+            </select>
+        </div>
                         
                         <div class="mb-6">
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="amount">
@@ -203,24 +216,27 @@
                         <div class="overflow-x-auto">
                             <table class="min-w-full bg-white">
                                 <thead>
-                                    <tr>
-                                        <th class="py-3 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Tanggal
-                                        </th>
-                                        <th class="py-3 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Keterangan
-                                        </th>
-                                        <th class="py-3 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Pemasukan
-                                        </th>
-                                        <th class="py-3 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Pengeluaran
-                                        </th>
-                                        <th class="py-3 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider no-print">
-                                            Aksi
-                                        </th>
-                                    </tr>
-                                </thead>
+        <tr>
+            <th class="py-3 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Tanggal
+            </th>
+            <th class="py-3 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Keterangan
+            </th>
+            <th class="py-3 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Kategori
+            </th>
+            <th class="py-3 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Pemasukan
+            </th>
+            <th class="py-3 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Pengeluaran
+            </th>
+            <th class="py-3 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider no-print">
+                Aksi
+            </th>
+        </tr>
+    </thead>
                                 <tbody id="transactionTableBody">
                                     <!-- Data akan dimuat di sini -->
                                 </tbody>
@@ -264,6 +280,22 @@
                     <input type="text" id="editDescription" name="editDescription" required
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="editCategory">
+                        Kategori
+                    </label>
+                    <select id="editCategory" name="editCategory" required
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="kas">Kas</option>
+                        <option value="pendapatan">Pendapatan</option>
+                        <option value="beban">Beban</option>
+                    </select>
+                </div>
+
+
+
+
                 
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="editType">
@@ -438,6 +470,7 @@
         }
         
         // Menambahkan transaksi baru
+        // Update addTransaction function
         async function addTransaction(transactionData) {
             showLoading();
             try {
@@ -447,6 +480,7 @@
                         action: 'add',
                         date: transactionData.date,
                         description: transactionData.description,
+                        category: transactionData.category,
                         type: transactionData.type,
                         amount: transactionData.amount
                     })
@@ -471,6 +505,7 @@
         }
         
         // Update transaksi
+        // Update updateTransaction function
         async function updateTransaction(id, transactionData) {
             showLoading();
             try {
@@ -481,6 +516,7 @@
                         id: id,
                         date: transactionData.date,
                         description: transactionData.description,
+                        category: transactionData.category,
                         type: transactionData.type,
                         amount: transactionData.amount
                     })
@@ -583,35 +619,35 @@
                     filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
                     
                     tbody.innerHTML = '';
-                    filteredTransactions.forEach((transaction, index) => {
-                        // Previous row rendering code remains the same
-                        const row = document.createElement('tr');
-                        row.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
-                        
-                        const dateObj = new Date(transaction.date);
-                        const formattedDate = `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`;
-                        
-                        row.innerHTML = `
-                            <td class="py-3 px-4 border-b border-gray-200">${formattedDate}</td>
-                            <td class="py-3 px-4 border-b border-gray-200">${transaction.description}</td>
-                            <td class="py-3 px-4 border-b border-gray-200 text-green-600">
-                                ${transaction.income ? formatRupiah(transaction.income) : ''}
-                            </td>
-                            <td class="py-3 px-4 border-b border-gray-200 text-red-600">
-                                ${transaction.expense ? formatRupiah(transaction.expense) : ''}
-                            </td>
-                            <td class="py-3 px-4 border-b border-gray-200">
-                                <button class="text-blue-500 hover:text-blue-700 mr-3 edit-btn" data-id="${transaction.id}">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="text-red-500 hover:text-red-700 delete-btn" data-id="${transaction.id}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        `;
-                        
-                        tbody.appendChild(row);
-                    });
+            filteredTransactions.forEach((transaction, index) => {
+                const row = document.createElement('tr');
+                row.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                
+                const dateObj = new Date(transaction.date);
+                const formattedDate = `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`;
+                
+                row.innerHTML = `
+                    <td class="py-3 px-4 border-b border-gray-200">${formattedDate}</td>
+                    <td class="py-3 px-4 border-b border-gray-200">${transaction.description}</td>
+                    <td class="py-3 px-4 border-b border-gray-200">${transaction.category}</td>
+                    <td class="py-3 px-4 border-b border-gray-200 text-green-600">
+                        ${transaction.income ? formatRupiah(transaction.income) : ''}
+                    </td>
+                    <td class="py-3 px-4 border-b border-gray-200 text-red-600">
+                        ${transaction.expense ? formatRupiah(transaction.expense) : ''}
+                    </td>
+                    <td class="py-3 px-4 border-b border-gray-200">
+                        <button class="text-blue-500 hover:text-blue-700 mr-3 edit-btn" data-id="${transaction.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="text-red-500 hover:text-red-700 delete-btn" data-id="${transaction.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
             
             // Menambahkan event listener untuk tombol edit dan delete
             document.querySelectorAll('.edit-btn').forEach(button => {
@@ -658,6 +694,7 @@
             document.getElementById('editId').value = transaction.id;
             document.getElementById('editDate').value = transaction.date;
             document.getElementById('editDescription').value = transaction.description;
+            document.getElementById('editCategory').value = transaction.category;
             
             if (transaction.income) {
                 document.getElementById('editType').value = 'income';
@@ -779,8 +816,14 @@ function downloadPDF(month, year) {
     // Create table
     doc.autoTable({
         startY: 50,
-        head: [['Tanggal', 'Keterangan', 'Pemasukan', 'Pengeluaran']],
-        body: tableData,
+        head: [['Tanggal', 'Keterangan', 'Kategori', 'Pemasukan', 'Pengeluaran']],
+                body: tableData.map(transaction => [
+                    formattedDate,
+                    transaction.description,
+                    transaction.category,
+                    transaction.income ? formatRupiah(transaction.income) : '',
+                    transaction.expense ? formatRupiah(transaction.expense) : ''
+                ]),
         theme: 'grid',
         headStyles: {
             fillColor: [51, 122, 183],
@@ -794,7 +837,8 @@ function downloadPDF(month, year) {
             0: { cellWidth: 25 },
             1: { cellWidth: 'auto' },
             2: { cellWidth: 35, halign: 'right' },
-            3: { cellWidth: 35, halign: 'right' }
+            3: { cellWidth: 35, halign: 'right' },
+            4: { cellWidth: 35, halign: 'right' }
         }
     });
 
@@ -852,57 +896,61 @@ function downloadPDF(month, year) {
             
             // Form tambah transaksi
             document.getElementById('transactionForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const date = document.getElementById('date').value;
-                const description = document.getElementById('description').value;
-                const type = document.getElementById('type').value;
-                const amount = document.getElementById('amount').value;
-                
-                if (!date || !description || !type || !amount) {
-                    alert('Semua field harus diisi');
-                    return;
-                }
-                
-                const success = await addTransaction({
-                    date,
-                    description,
-                    type,
-                    amount
-                });
-                
-                if (success) {
-                    document.getElementById('transactionForm').reset();
-                    document.getElementById('amount').value = '';
-                }
+            e.preventDefault();
+            
+            const date = document.getElementById('date').value;
+            const description = document.getElementById('description').value;
+            const category = document.getElementById('category').value;
+            const type = document.getElementById('type').value;
+            const amount = document.getElementById('amount').value;
+            
+            if (!date || !description || !category || !type || !amount) {
+                alert('Semua field harus diisi');
+                return;
+            }
+            
+            const success = await addTransaction({
+                date,
+                description,
+                category,
+                type,
+                amount
             });
+            
+            if (success) {
+                document.getElementById('transactionForm').reset();
+                document.getElementById('amount').value = '';
+            }
+        });
             
             // Form edit transaksi
             document.getElementById('editForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const id = document.getElementById('editId').value;
-                const date = document.getElementById('editDate').value;
-                const description = document.getElementById('editDescription').value;
-                const type = document.getElementById('editType').value;
-                const amount = document.getElementById('editAmount').value;
-                
-                if (!date || !description || !type || !amount) {
-                    alert('Semua field harus diisi');
-                    return;
-                }
-                
-                const success = await updateTransaction(id, {
-                    date,
-                    description,
-                    type,
-                    amount
-                });
-                
-                if (success) {
-                    closeEditModal();
-                }
+            e.preventDefault();
+            
+            const id = document.getElementById('editId').value;
+            const date = document.getElementById('editDate').value;
+            const description = document.getElementById('editDescription').value;
+            const category = document.getElementById('editCategory').value;
+            const type = document.getElementById('editType').value;
+            const amount = document.getElementById('editAmount').value;
+            
+            if (!date || !description || !category || !type || !amount) {
+                alert('Semua field harus diisi');
+                return;
+            }
+            
+            const success = await updateTransaction(id, {
+                date,
+                description,
+                category,
+                type,
+                amount
             });
+            
+            if (success) {
+                closeEditModal();
+            }
+        });
             
             // Tombol refresh
             document.getElementById('refreshBtn').addEventListener('click', fetchTransactions);
