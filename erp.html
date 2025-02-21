@@ -110,12 +110,25 @@
                         </div>
                         
                         <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
-                                Keterangan
-                            </label>
-                            <input type="text" id="description" name="description" required placeholder="Keterangan transaksi"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        </div>
+    <label class="block text-gray-700 text-sm font-bold mb-2" for="category">
+        Kategori
+    </label>
+    <select id="category" name="category" required
+        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        <option value="">Pilih kategori</option>
+        <option value="Kas">Kas</option>
+        <option value="Pendapatan">Pendapatan</option>
+        <option value="Beban">Beban</option>
+    </select>
+</div>
+
+<div class="mb-4">
+    <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
+        Keterangan
+    </label>
+    <input type="text" id="description" name="description" required placeholder="Keterangan transaksi"
+        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+</div>
                         
                         <div class="mb-4">
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="type">
@@ -258,12 +271,25 @@
                 </div>
                 
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="editDescription">
-                        Keterangan
-                    </label>
-                    <input type="text" id="editDescription" name="editDescription" required
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
+    <label class="block text-gray-700 text-sm font-bold mb-2" for="editCategory">
+        Kategori
+    </label>
+    <select id="editCategory" name="editCategory" required
+        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        <option value="">Pilih kategori</option>
+        <option value="Kas">Kas</option>
+        <option value="Pendapatan">Pendapatan</option>
+        <option value="Beban">Beban</option>
+    </select>
+</div>
+
+<div class="mb-4">
+    <label class="block text-gray-700 text-sm font-bold mb-2" for="editDescription">
+        Keterangan
+    </label>
+    <input type="text" id="editDescription" name="editDescription" required
+        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+</div>
                 
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="editType">
@@ -441,16 +467,18 @@
         async function addTransaction(transactionData) {
             showLoading();
             try {
+                // Combine category and description
+        const combinedDescription = `[${transactionData.category}], ${transactionData.description}`;
                 const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'add',
-                        date: transactionData.date,
-                        description: transactionData.description,
-                        type: transactionData.type,
-                        amount: transactionData.amount
-                    })
-                });
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'add',
+                date: transactionData.date,
+                description: combinedDescription,
+                type: transactionData.type,
+                amount: transactionData.amount
+            })
+        });
                 
                 const result = await response.json();
                 
@@ -474,17 +502,20 @@
         async function updateTransaction(id, transactionData) {
             showLoading();
             try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'update',
-                        id: id,
-                        date: transactionData.date,
-                        description: transactionData.description,
-                        type: transactionData.type,
-                        amount: transactionData.amount
-                    })
-                });
+                // Combine category and description
+        const combinedDescription = `[${transactionData.category}], ${transactionData.description}`;
+        
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'update',
+                id: id,
+                date: transactionData.date,
+                description: combinedDescription,
+                type: transactionData.type,
+                amount: transactionData.amount
+            })
+        });
                 
                 const result = await response.json();
                 
@@ -652,27 +683,36 @@
         
         // Membuka modal edit
         function openEditModal(id) {
-            const transaction = transactions.find(t => t.id === id);
-            if (!transaction) return;
-            
-            document.getElementById('editId').value = transaction.id;
-            document.getElementById('editDate').value = transaction.date;
-            document.getElementById('editDescription').value = transaction.description;
-            
-            if (transaction.income) {
-                document.getElementById('editType').value = 'income';
-                const amountValue = parseFloat(transaction.income);
-                document.getElementById('editAmountDisplay').value = formatNumber(amountValue);
-                document.getElementById('editAmount').value = amountValue;
-            } else {
-                document.getElementById('editType').value = 'expense';
-                const amountValue = parseFloat(transaction.expense);
-                document.getElementById('editAmountDisplay').value = formatNumber(amountValue);
-                document.getElementById('editAmount').value = amountValue;
-            }
-            
-            document.getElementById('editModal').classList.remove('hidden');
-        }
+    const transaction = transactions.find(t => t.id === id);
+    if (!transaction) return;
+    
+    document.getElementById('editId').value = transaction.id;
+    document.getElementById('editDate').value = transaction.date;
+    
+    // Split the description to get category and actual description
+    const descriptionParts = transaction.description.match(/\[(.*?)\],\s*(.*)/);
+    if (descriptionParts) {
+        document.getElementById('editCategory').value = descriptionParts[1];
+        document.getElementById('editDescription').value = descriptionParts[2];
+    } else {
+        document.getElementById('editCategory').value = '';
+        document.getElementById('editDescription').value = transaction.description;
+    }
+    
+    if (transaction.income) {
+        document.getElementById('editType').value = 'income';
+        const amountValue = parseFloat(transaction.income);
+        document.getElementById('editAmountDisplay').value = formatNumber(amountValue);
+        document.getElementById('editAmount').value = amountValue;
+    } else {
+        document.getElementById('editType').value = 'expense';
+        const amountValue = parseFloat(transaction.expense);
+        document.getElementById('editAmountDisplay').value = formatNumber(amountValue);
+        document.getElementById('editAmount').value = amountValue;
+    }
+    
+    document.getElementById('editModal').classList.remove('hidden');
+}
         
         // Menutup modal edit
         function closeEditModal() {
@@ -852,57 +892,61 @@ function downloadPDF(month, year) {
             
             // Form tambah transaksi
             document.getElementById('transactionForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const date = document.getElementById('date').value;
-                const description = document.getElementById('description').value;
-                const type = document.getElementById('type').value;
-                const amount = document.getElementById('amount').value;
-                
-                if (!date || !description || !type || !amount) {
-                    alert('Semua field harus diisi');
-                    return;
-                }
-                
-                const success = await addTransaction({
-                    date,
-                    description,
-                    type,
-                    amount
-                });
-                
-                if (success) {
-                    document.getElementById('transactionForm').reset();
-                    document.getElementById('amount').value = '';
-                }
-            });
+        e.preventDefault();
+        
+        const date = document.getElementById('date').value;
+        const category = document.getElementById('category').value;
+        const description = document.getElementById('description').value;
+        const type = document.getElementById('type').value;
+        const amount = document.getElementById('amount').value;
+        
+        if (!date || !category || !description || !type || !amount) {
+            alert('Semua field harus diisi');
+            return;
+        }
+        
+        const success = await addTransaction({
+            date,
+            category,
+            description,
+            type,
+            amount
+        });
+        
+        if (success) {
+            document.getElementById('transactionForm').reset();
+            document.getElementById('amount').value = '';
+        }
+    });
             
             // Form edit transaksi
             document.getElementById('editForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const id = document.getElementById('editId').value;
-                const date = document.getElementById('editDate').value;
-                const description = document.getElementById('editDescription').value;
-                const type = document.getElementById('editType').value;
-                const amount = document.getElementById('editAmount').value;
-                
-                if (!date || !description || !type || !amount) {
-                    alert('Semua field harus diisi');
-                    return;
-                }
-                
-                const success = await updateTransaction(id, {
-                    date,
-                    description,
-                    type,
-                    amount
-                });
-                
-                if (success) {
-                    closeEditModal();
-                }
-            });
+        e.preventDefault();
+        
+        const id = document.getElementById('editId').value;
+        const date = document.getElementById('editDate').value;
+        const category = document.getElementById('editCategory').value;
+        const description = document.getElementById('editDescription').value;
+        const type = document.getElementById('editType').value;
+        const amount = document.getElementById('editAmount').value;
+        
+        if (!date || !category || !description || !type || !amount) {
+            alert('Semua field harus diisi');
+            return;
+        }
+        
+        const success = await updateTransaction(id, {
+            date,
+            category,
+            description,
+            type,
+            amount
+        });
+        
+        if (success) {
+            closeEditModal();
+        }
+    });
             
             // Tombol refresh
             document.getElementById('refreshBtn').addEventListener('click', fetchTransactions);
