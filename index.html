@@ -56,8 +56,8 @@
     <script type="text/babel">
         // Copy the entire Layout component code here
         const Layout = () => {
-            const [sidebarOpen, setSidebarOpen] = React.useState(true);
-            const [currentPage, setCurrentPage] = React.useState('pembukuan');
+            const [sidebarOpen, setSidebarOpen] = React.useState(false);
+            const [currentPage, setCurrentPage] = React.useState('dashboard');
 
             const toggleSidebar = () => {
                 setSidebarOpen(!sidebarOpen);
@@ -159,9 +159,12 @@
                             <div className="py-6">
                                 <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
                                     {currentPage === 'dashboard' && (
-                                        <div className="text-center py-12">
-                                            <h2 className="text-2xl font-semibold text-gray-900">Dashboard akan segera hadir</h2>
-                                            <p className="mt-2 text-gray-600">Halaman ini sedang dalam pengembangan</p>
+                                        <div id="dashboard-content" className="min-h-screen bg-gray-100">
+                                            <iframe 
+                                                src="dashboard.html" 
+                                                className="w-full h-screen border-0"
+                                                title="Dashboard"
+                                            />
                                         </div>
                                     )}
                                     {currentPage === 'pembukuan' && (
