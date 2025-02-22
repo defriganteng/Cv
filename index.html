@@ -217,7 +217,7 @@
         </div>
         <ul class="nav-list">
             <li>
-                <div class="title" onclick="loadContent('dashboard1.html')">
+                <div class="title" onclick="loadContent('dashboard.html')">
                     <i class="fas fa-home"></i>
                     <span>Dashboard</span>
                 </div>
@@ -229,8 +229,8 @@
                     <i class="fas fa-chevron-down arrow"></i>
                 </div>
                 <ul class="submenu">
-                    <li><a href="#" onclick="loadContent('erp.html')">Pembukuan</a></li>
-                    <li><a href="#" onclick="loadContent('dashboard.html')">Laporan</a></li>
+                    <li><a href="#" onclick="loadContent('pembukuan.html')">Pembukuan</a></li>
+                    <li><a href="#" onclick="loadContent('laporan.html')">Laporan</a></li>
                 </ul>
             </li>
         </ul>
@@ -241,7 +241,7 @@
             <i class="fas fa-bars"></i>
             <span class="title">Dashboard</span>
         </div>
-        <iframe id="contentFrame" class="content-frame" src="dashboard1.html"></iframe>
+        <iframe id="contentFrame" class="content-frame" src="dashboard.html"></iframe>
     </section>
 
     <script>
@@ -269,7 +269,7 @@
 
         // Set default content
         window.onload = () => {
-            loadContent('dashboard1.html');
+            loadContent('dashboard.html');
         };
     </script>
 </body>
