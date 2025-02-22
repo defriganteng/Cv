@@ -9,20 +9,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        :root {
-            --sidebar-width: 250px;
-            --header-height: 60px;
-            --primary-color: #2563eb;
-            --hover-color: #1d4ed8;
-            --bg-color: #f1f5f9;
-        }
-
-        body {
-            min-height: 100vh;
-            background-color: var(--bg-color);
+            font-family: Arial, sans-serif;
         }
 
         .container {
@@ -32,211 +19,182 @@
 
         /* Sidebar Styles */
         .sidebar {
-            width: var(--sidebar-width);
-            background-color: white;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            width: 250px;
+            background-color: #2c3e50;
+            color: white;
             transition: all 0.3s ease;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        .sidebar.collapsed {
-            width: 0;
-            padding: 0;
         }
 
         .sidebar-header {
             padding: 20px;
-            background-color: var(--primary-color);
-            color: white;
-            height: var(--header-height);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            text-align: center;
+            background-color: #243342;
         }
 
-        .menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        .nav-menu {
+        .sidebar-menu {
             padding: 20px 0;
         }
 
-        .nav-item {
-            padding: 10px 20px;
+        .menu-item {
+            padding: 15px 20px;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
-        .nav-item:hover {
-            background-color: var(--bg-color);
+        .menu-item:hover {
+            background-color: #34495e;
         }
 
-        .nav-item.active {
-            background-color: var(--bg-color);
-            border-left: 4px solid var(--primary-color);
+        .menu-item.active {
+            background-color: #3498db;
         }
 
-        .sub-menu {
-            padding-left: 30px;
+        .submenu {
             display: none;
+            background-color: #34495e;
         }
 
-        .sub-menu.show {
+        .submenu-item {
+            padding: 12px 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submenu-item:hover {
+            background-color: #2980b9;
+        }
+
+        .submenu.active {
             display: block;
         }
 
-        /* Main Content Styles */
-        .main-content {
+        /* Content Styles */
+        .content {
             flex: 1;
-            margin-left: var(--sidebar-width);
-            transition: all 0.3s ease;
             padding: 20px;
+            background-color: #f5f6fa;
         }
 
-        .main-content.expanded {
-            margin-left: 0;
-        }
-
-        .main-header {
-            background-color: white;
-            padding: 0 20px;
-            height: var(--header-height);
-            display: flex;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            position: fixed;
-            top: 0;
-            right: 0;
-            left: var(--sidebar-width);
-            transition: all 0.3s ease;
-        }
-
-        .main-header.expanded {
-            left: 0;
-        }
-
-        .content-area {
-            margin-top: calc(var(--header-height) + 20px);
-            padding: 20px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            min-height: calc(100vh - var(--header-height) - 60px);
-        }
-
-        iframe {
+        .content iframe {
             width: 100%;
-            height: calc(100vh - var(--header-height) - 100px);
+            height: calc(100vh - 40px);
             border: none;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Hamburger Menu */
+        .hamburger {
+            display: none;
+            font-size: 24px;
+            padding: 10px;
+            cursor: pointer;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 5px;
         }
 
         /* Responsive Design */
-        @media (max-width: 768px) {
+        @media screen and (max-width: 768px) {
             .sidebar {
-                width: 0;
-                padding: 0;
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-
-            .main-header {
-                left: 0;
-            }
-
-            .menu-toggle {
-                display: block;
+                position: fixed;
+                left: -250px;
+                height: 100vh;
+                z-index: 999;
             }
 
             .sidebar.active {
-                width: var(--sidebar-width);
-                padding: initial;
+                left: 0;
+            }
+
+            .hamburger {
+                display: block;
+            }
+
+            .content {
+                margin-left: 0;
+                padding-top: 60px;
             }
         }
     </style>
 </head>
 <body>
+    <button class="hamburger">☰</button>
     <div class="container">
-        <!-- Sidebar -->
-        <div class="sidebar" id="sidebar">
+        <div class="sidebar">
             <div class="sidebar-header">
-                <h2>Menu</h2>
-                <button class="menu-toggle" onclick="toggleSidebar()">✕</button>
+                <h2>Dashboard</h2>
             </div>
-            <nav class="nav-menu">
-                <div class="nav-item" onclick="loadContent('')">Dashboard</div>
-                <div class="nav-item" onclick="toggleSubMenu(this)">
+            <div class="sidebar-menu">
+                <div class="menu-item" data-content="">Dashboard</div>
+                <div class="menu-item" data-submenu="keuangan">
                     Keuangan
-                    <div class="sub-menu">
-                        <div class="nav-item" onclick="loadContent('pembukuan.html')">Pembukuan</div>
-                        <div class="nav-item" onclick="loadContent('laporan.html')">Laporan</div>
+                    <div class="submenu" id="keuangan">
+                        <div class="submenu-item" data-content="pembukuan.html">Pembukuan</div>
+                        <div class="submenu-item" data-content="laporan.html">Laporan</div>
                     </div>
                 </div>
-            </nav>
-        </div>
-
-        <!-- Main Content -->
-        <div class="main-content" id="mainContent">
-            <header class="main-header" id="mainHeader">
-                <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
-                <h2>Dashboard</h2>
-            </header>
-            <div class="content-area">
-                <iframe id="contentFrame" src=""></iframe>
             </div>
+        </div>
+        <div class="content">
+            <iframe id="contentFrame" src="about:blank"></iframe>
         </div>
     </div>
 
     <script>
-        // Toggle sidebar
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const mainContent = document.getElementById('mainContent');
-            const mainHeader = document.getElementById('mainHeader');
-            
-            sidebar.classList.toggle('active');
-            mainContent.classList.toggle('expanded');
-            mainHeader.classList.toggle('expanded');
-        }
-
         // Toggle submenu
-        function toggleSubMenu(element) {
-            const subMenu = element.querySelector('.sub-menu');
-            subMenu.classList.toggle('show');
-        }
+        document.querySelectorAll('.menu-item[data-submenu]').forEach(item => {
+            item.addEventListener('click', () => {
+                const submenuId = item.getAttribute('data-submenu');
+                const submenu = document.getElementById(submenuId);
+                submenu.classList.toggle('active');
+            });
+        });
 
-        // Load content
-        function loadContent(url) {
-            const contentFrame = document.getElementById('contentFrame');
-            contentFrame.src = url;
-            
-            // Update header title
-            const headerTitle = document.querySelector('.main-header h2');
-            if (url === '') {
-                headerTitle.textContent = 'Dashboard';
-            } else if (url === 'pembukuan.html') {
-                headerTitle.textContent = 'Pembukuan';
-            } else if (url === 'laporan.html') {
-                headerTitle.textContent = 'Laporan';
-            }
+        // Handle content loading
+        document.querySelectorAll('.menu-item[data-content], .submenu-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const content = item.getAttribute('data-content');
+                const contentFrame = document.getElementById('contentFrame');
+                
+                // Remove active class from all menu items
+                document.querySelectorAll('.menu-item, .submenu-item').forEach(menuItem => {
+                    menuItem.classList.remove('active');
+                });
+                
+                // Add active class to clicked item
+                item.classList.add('active');
 
-            // Close sidebar on mobile after selection
+                if (content) {
+                    contentFrame.src = content;
+                } else {
+                    contentFrame.src = 'about:blank';
+                }
+            });
+        });
+
+        // Hamburger menu functionality
+        const hamburger = document.querySelector('.hamburger');
+        const sidebar = document.querySelector('.sidebar');
+
+        hamburger.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
             if (window.innerWidth <= 768) {
-                toggleSidebar();
+                if (!sidebar.contains(e.target) && !hamburger.contains(e.target)) {
+                    sidebar.classList.remove('active');
+                }
             }
-        }
-
-        // Initial content load
-        loadContent('');
+        });
     </script>
 </body>
 </html>
