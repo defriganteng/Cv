@@ -3,274 +3,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>Dashboard</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --sidebar-width: 250px;
+            --header-height: 60px;
+            --primary-color: #2563eb;
+            --hover-color: #1d4ed8;
+            --bg-color: #f1f5f9;
         }
 
         body {
             min-height: 100vh;
-            background: #f5f5f5;
+            background-color: var(--bg-color);
         }
 
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
         .sidebar {
+            width: var(--sidebar-width);
+            background-color: white;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar.collapsed {
+            width: 0;
+            padding: 0;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .nav-menu {
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:hover {
+            background-color: var(--bg-color);
+        }
+
+        .nav-item.active {
+            background-color: var(--bg-color);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .sub-menu {
+            padding-left: 30px;
+            display: none;
+        }
+
+        .sub-menu.show {
+            display: block;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            transition: all 0.3s ease;
+            padding: 20px;
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        .main-header {
+            background-color: white;
+            padding: 0 20px;
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             position: fixed;
             top: 0;
+            right: 0;
+            left: var(--sidebar-width);
+            transition: all 0.3s ease;
+        }
+
+        .main-header.expanded {
             left: 0;
-            height: 100%;
-            width: 260px;
-            background: #2c3e50;
-            z-index: 100;
-            transition: all 0.3s ease;
         }
 
-        .sidebar.close {
-            width: 78px;
+        .content-area {
+            margin-top: calc(var(--header-height) + 20px);
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            min-height: calc(100vh - var(--header-height) - 60px);
         }
 
-        .sidebar .logo {
-            height: 60px;
+        iframe {
             width: 100%;
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-        }
-
-        .sidebar .logo i {
-            font-size: 30px;
-            color: #fff;
-            height: 50px;
-            min-width: 38px;
-            text-align: center;
-            line-height: 50px;
-        }
-
-        .sidebar .logo .logo-name {
-            font-size: 22px;
-            color: #fff;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .sidebar.close .logo .logo-name {
-            opacity: 0;
-        }
-
-        .sidebar .nav-list {
-            height: calc(100% - 60px);
-            padding: 30px 0;
-            overflow: auto;
-        }
-
-        .sidebar .nav-list::-webkit-scrollbar {
-            display: none;
-        }
-
-        .sidebar .nav-list li {
-            position: relative;
-            list-style: none;
-            transition: all 0.3s ease;
-        }
-
-        .sidebar .nav-list li:hover {
-            background: #1a252f;
-        }
-
-        .sidebar .nav-list li .title {
-            display: flex;
-            align-items: center;
-            padding: 12px 20px;
-            width: 100%;
-            cursor: pointer;
-        }
-
-        .sidebar .nav-list li i {
-            height: 50px;
-            min-width: 38px;
-            text-align: center;
-            line-height: 50px;
-            color: #fff;
-            font-size: 20px;
-        }
-
-        .sidebar .nav-list li .title span {
-            color: #fff;
-            font-size: 16px;
-            font-weight: 400;
-            white-space: nowrap;
-        }
-
-        .sidebar.close .nav-list li .title span {
-            opacity: 0;
-        }
-
-        .sidebar .nav-list li .submenu {
-            background: #1a252f;
-            display: none;
-        }
-
-        .sidebar .nav-list li.showMenu .submenu {
-            display: block;
-        }
-
-        .sidebar .nav-list li .submenu a {
-            color: #fff;
-            text-decoration: none;
-            padding: 12px 20px 12px 58px;
-            display: block;
-            white-space: nowrap;
-            opacity: 1;
-            transition: all 0.3s ease;
-        }
-
-        .sidebar.close .nav-list li .submenu {
-            position: absolute;
-            left: 100%;
-            top: -10px;
-            margin-top: 0;
-            padding: 0;
-            border-radius: 0 6px 6px 0;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .sidebar.close .nav-list li:hover .submenu {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .sidebar .nav-list li .submenu a:hover {
-            background: #2c3e50;
-        }
-
-        .home-section {
-            position: relative;
-            height: 100vh;
-            left: 260px;
-            width: calc(100% - 260px);
-            transition: all 0.3s ease;
-        }
-
-        .sidebar.close ~ .home-section {
-            left: 78px;
-            width: calc(100% - 78px);
-        }
-
-        .home-section .home-content {
-            height: 60px;
-            display: flex;
-            align-items: center;
-            background: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .home-section .home-content i {
-            font-size: 24px;
-            margin: 0 20px;
-            cursor: pointer;
-        }
-
-        .home-section .home-content .title {
-            font-size: 20px;
-            font-weight: 600;
-        }
-
-        .content-frame {
-            width: 100%;
-            height: calc(100vh - 60px);
+            height: calc(100vh - var(--header-height) - 100px);
             border: none;
         }
 
+        /* Responsive Design */
         @media (max-width: 768px) {
             .sidebar {
-                width: 78px;
-            }
-            .sidebar.close {
                 width: 0;
                 padding: 0;
             }
-            .sidebar .logo .logo-name,
-            .sidebar .nav-list li .title span {
-                opacity: 0;
+
+            .main-content {
+                margin-left: 0;
             }
-            .home-section {
-                left: 78px;
-                width: calc(100% - 78px);
-            }
-            .sidebar.close ~ .home-section {
+
+            .main-header {
                 left: 0;
-                width: 100%;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .sidebar.active {
+                width: var(--sidebar-width);
+                padding: initial;
             }
         }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <div class="logo">
-            <i class="fas fa-cube"></i>
-            <span class="logo-name">Admin Panel</span>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Menu</h2>
+                <button class="menu-toggle" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="nav-menu">
+                <div class="nav-item" onclick="loadContent('')">Dashboard</div>
+                <div class="nav-item" onclick="toggleSubMenu(this)">
+                    Keuangan
+                    <div class="sub-menu">
+                        <div class="nav-item" onclick="loadContent('pembukuan.html')">Pembukuan</div>
+                        <div class="nav-item" onclick="loadContent('laporan.html')">Laporan</div>
+                    </div>
+                </div>
+            </nav>
         </div>
-        <ul class="nav-list">
-            <li>
-                <div class="title" onclick="loadContent('dashboard.html')">
-                    <i class="fas fa-home"></i>
-                    <span>Dashboard</span>
-                </div>
-            </li>
-            <li>
-                <div class="title">
-                    <i class="fas fa-wallet"></i>
-                    <span>Keuangan</span>
-                    <i class="fas fa-chevron-down arrow"></i>
-                </div>
-                <ul class="submenu">
-                    <li><a href="#" onclick="loadContent('pembukuan.html')">Pembukuan</a></li>
-                    <li><a href="#" onclick="loadContent('laporan.html')">Laporan</a></li>
-                </ul>
-            </li>
-        </ul>
+
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
+            <header class="main-header" id="mainHeader">
+                <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+                <h2>Dashboard</h2>
+            </header>
+            <div class="content-area">
+                <iframe id="contentFrame" src=""></iframe>
+            </div>
+        </div>
     </div>
 
-    <section class="home-section">
-        <div class="home-content">
-            <i class="fas fa-bars"></i>
-            <span class="title">Dashboard</span>
-        </div>
-        <iframe id="contentFrame" class="content-frame" src="dashboard.html"></iframe>
-    </section>
-
     <script>
-        const sidebar = document.querySelector(".sidebar");
-        const sidebarBtn = document.querySelector(".home-content i");
-        const subMenuBtn = document.querySelector(".arrow");
-        const subMenu = document.querySelector(".submenu").parentElement;
-
-        sidebarBtn.addEventListener("click", () => {
-            sidebar.classList.toggle("close");
-        });
-
-        subMenu.addEventListener("click", () => {
-            subMenu.classList.toggle("showMenu");
-        });
-
-        function loadContent(url) {
-            document.getElementById('contentFrame').src = url;
-            document.querySelector('.home-content .title').textContent = url.split('.')[0].charAt(0).toUpperCase() + url.split('.')[0].slice(1);
+        // Toggle sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const mainHeader = document.getElementById('mainHeader');
             
+            sidebar.classList.toggle('active');
+            mainContent.classList.toggle('expanded');
+            mainHeader.classList.toggle('expanded');
+        }
+
+        // Toggle submenu
+        function toggleSubMenu(element) {
+            const subMenu = element.querySelector('.sub-menu');
+            subMenu.classList.toggle('show');
+        }
+
+        // Load content
+        function loadContent(url) {
+            const contentFrame = document.getElementById('contentFrame');
+            contentFrame.src = url;
+            
+            // Update header title
+            const headerTitle = document.querySelector('.main-header h2');
+            if (url === '') {
+                headerTitle.textContent = 'Dashboard';
+            } else if (url === 'pembukuan.html') {
+                headerTitle.textContent = 'Pembukuan';
+            } else if (url === 'laporan.html') {
+                headerTitle.textContent = 'Laporan';
+            }
+
+            // Close sidebar on mobile after selection
             if (window.innerWidth <= 768) {
-                sidebar.classList.add("close");
+                toggleSidebar();
             }
         }
 
-        // Set default content
-        window.onload = () => {
-            loadContent('dashboard.html');
-        };
+        // Initial content load
+        loadContent('');
     </script>
 </body>
 </html>
