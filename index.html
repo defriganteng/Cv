@@ -3,272 +3,212 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERP Dashboard</title>
+    <title>Dashboard Keuangan</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        .sidebar {
-            transition: all 0.3s;
+        .dashboard-iframe {
+            height: calc(100vh - 130px);
         }
-        .content-area {
-            transition: margin 0.3s;
-        }
+        
         @media (max-width: 768px) {
             .sidebar {
-                margin-left: -100%;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
             }
-            .sidebar.active {
-                margin-left: 0;
+            
+            .sidebar-active {
+                transform: translateX(0);
             }
         }
     </style>
 </head>
 <body class="bg-gray-100">
-    <!-- Loading -->
-    <div id="loading" class="fixed inset-0 bg-white bg-opacity-90 z-50 hidden justify-center items-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+    <!-- Mobile Menu Button -->
+    <button id="mobileMenuButton" class="md:hidden fixed top-4 left-4 z-50 p-2 bg-blue-500 text-white rounded-lg">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <div class="sidebar fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transition-transform duration-300">
+        <!-- Logo -->
+        <div class="p-4 bg-blue-600">
+            <h1 class="text-white text-xl font-bold">Finance Dashboard</h1>
+        </div>
+
+        <!-- Menu -->
+        <nav class="mt-4">
+            <div class="px-2 space-y-1">
+                <!-- Dashboard Menu -->
+                <div>
+                    <button onclick="showContent('dashboard')" class="w-full text-left px-4 py-3 bg-blue-50 text-blue-700 font-medium rounded-lg hover:bg-blue-100 transition-colors">
+                        <i class="fas fa-home mr-2"></i> Dashboard
+                    </button>
+                </div>
+
+                <!-- Keuangan Menu -->
+                <div x-data="{ open: false }" class="relative">
+                    <button @click="open = !open" class="w-full text-left px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-wallet mr-2"></i> Keuangan
+                        <i class="fas fa-chevron-down float-right mt-1 text-sm"></i>
+                    </button>
+                    
+                    <!-- Submenu -->
+                    <div x-show="open" class="ml-6 mt-1 space-y-1">
+                        <a href="#" onclick="showContent('erp')" class="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
+                            <i class="fas fa-book mr-2"></i> Pembukuan
+                        </a>
+                        <a href="#" onclick="showContent('laporan')" class="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
+                            <i class="fas fa-chart-line mr-2"></i> Laporan Laba/Rugi
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
     </div>
 
-    <div class="flex">
-        <!-- Sidebar -->
-        <aside class="sidebar fixed h-screen w-64 bg-white shadow-lg z-40">
-            <div class="p-4 border-b">
-                <h2 class="text-xl font-bold text-blue-600">ERP System</h2>
-            </div>
-            
-            <nav class="p-4">
-                <ul class="space-y-2">
-                    <li>
-                        <a href="#dashboard" class="dashboard-menu flex items-center p-2 text-gray-700 rounded-lg hover:bg-blue-50">
-                            <i class="fas fa-home mr-3"></i>
-                            Dashboard
-                        </a>
-                    </li>
-                    <li>
-                        <details class="group">
-                            <summary class="flex items-center p-2 text-gray-700 rounded-lg hover:bg-blue-50 cursor-pointer">
-                                <i class="fas fa-wallet mr-3"></i>
-                                Keuangan
-                                <i class="fas fa-chevron-down ml-auto text-sm transition-transform group-open:rotate-180"></i>
-                            </summary>
-                            <ul class="ml-4 mt-2 space-y-2">
-                                <li>
-                                    <a href="#pembukuan" class="submenu flex items-center p-2 text-gray-600 rounded-lg hover:bg-blue-50">
-                                        <i class="fas fa-book mr-3"></i>
-                                        Pembukuan
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#laporan" class="submenu flex items-center p-2 text-gray-600 rounded-lg hover:bg-blue-50">
-                                        <i class="fas fa-chart-line mr-3"></i>
-                                        Laporan Laba/Rugi
-                                    </a>
-                                </li>
-                            </ul>
-                        </details>
-                    </li>
-                </ul>
-            </nav>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="content-area ml-0 md:ml-64 min-h-screen w-full">
-            <!-- Mobile Header -->
-            <div class="md:hidden p-4 bg-white shadow flex items-center">
-                <button id="menuToggle" class="text-gray-600">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
-                <h1 class="text-xl font-bold text-blue-600 ml-4">ERP Dashboard</h1>
-            </div>
-
-            <!-- Content Sections -->
-            <div id="dashboardContent" class="p-4 md:p-8">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">Dashboard</h2>
-                
-                <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                    <div class="bg-white rounded-lg shadow p-4">
-                        <div class="flex items-center">
-                            <div class="p-3 bg-blue-100 rounded-full mr-3">
-                                <i class="fas fa-wallet text-blue-500"></i>
-                            </div>
-                            <div>
-                                <p class="text-gray-500 text-sm">Total Saldo</p>
-                                <h3 class="text-xl font-bold" id="totalSaldo">Rp 0</h3>
-                            </div>
-                        </div>
+    <!-- Main Content -->
+    <div class="md:ml-64 p-4">
+        <!-- Dashboard Content -->
+        <div id="dashboardContent" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <!-- Total Saldo Card -->
+            <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex items-center">
+                    <div class="p-3 bg-green-100 rounded-lg mr-4">
+                        <i class="fas fa-wallet text-green-600 text-2xl"></i>
                     </div>
-                    
-                    <div class="bg-white rounded-lg shadow p-4">
-                        <div class="flex items-center">
-                            <div class="p-3 bg-green-100 rounded-full mr-3">
-                                <i class="fas fa-arrow-up text-green-500"></i>
-                            </div>
-                            <div>
-                                <p class="text-gray-500 text-sm">Total Pendapatan</p>
-                                <h3 class="text-xl font-bold" id="totalPendapatan">Rp 0</h3>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white rounded-lg shadow p-4">
-                        <div class="flex items-center">
-                            <div class="p-3 bg-red-100 rounded-full mr-3">
-                                <i class="fas fa-arrow-down text-red-500"></i>
-                            </div>
-                            <div>
-                                <p class="text-gray-500 text-sm">Total Beban</p>
-                                <h3 class="text-xl font-bold" id="totalBeban">Rp 0</h3>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white rounded-lg shadow p-4">
-                        <div class="flex items-center">
-                            <div class="p-3 bg-purple-100 rounded-full mr-3">
-                                <i class="fas fa-chart-line text-purple-500"></i>
-                            </div>
-                            <div>
-                                <p class="text-gray-500 text-sm">Laba/Rugi Bersih</p>
-                                <h3 class="text-xl font-bold" id="labaRugi">Rp 0</h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Transactions -->
-                <div class="bg-white rounded-lg shadow p-6">
-                    <h3 class="text-xl font-semibold mb-4">Transaksi Terakhir</h3>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full">
-                            <thead>
-                                <tr class="text-left text-sm text-gray-500">
-                                    <th class="pb-3">Tanggal</th>
-                                    <th class="pb-3">Keterangan</th>
-                                    <th class="pb-3">Jumlah</th>
-                                    <th class="pb-3">Tipe</th>
-                                </tr>
-                            </thead>
-                            <tbody id="recentTransactions"></tbody>
-                        </table>
+                    <div>
+                        <p class="text-gray-500 text-sm">Total Saldo</p>
+                        <h3 class="text-2xl font-bold" id="totalSaldo">Rp 0</h3>
                     </div>
                 </div>
             </div>
 
-            <!-- Pembukuan Section -->
-            <div id="pembukuanContent" class="hidden p-4 md:p-8">
-                <iframe src="erp.html" class="w-full h-screen border-none"></iframe>
+            <!-- Total Pendapatan Card -->
+            <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex items-center">
+                    <div class="p-3 bg-blue-100 rounded-lg mr-4">
+                        <i class="fas fa-arrow-up text-blue-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Total Pendapatan</p>
+                        <h3 class="text-2xl font-bold" id="totalPendapatan">Rp 0</h3>
+                    </div>
+                </div>
             </div>
 
-            <!-- Laporan Section -->
-            <div id="laporanContent" class="hidden p-4 md:p-8">
-                <iframe src="dashboard.html" class="w-full h-screen border-none"></iframe>
+            <!-- Total Beban Card -->
+            <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex items-center">
+                    <div class="p-3 bg-red-100 rounded-lg mr-4">
+                        <i class="fas fa-arrow-down text-red-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Total Beban</p>
+                        <h3 class="text-2xl font-bold" id="totalBeban">Rp 0</h3>
+                    </div>
+                </div>
             </div>
-        </main>
+
+            <!-- Laba Rugi Card -->
+            <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex items-center">
+                    <div class="p-3 bg-purple-100 rounded-lg mr-4">
+                        <i class="fas fa-chart-bar text-purple-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Laba/Rugi Bersih</p>
+                        <h3 class="text-2xl font-bold" id="labaRugi">Rp 0</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Iframe Container -->
+        <div id="contentFrame" class="hidden bg-white rounded-xl shadow-sm">
+            <iframe class="w-full dashboard-iframe rounded-xl" frameborder="0"></iframe>
+        </div>
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwlH1A8xC94pG95QiuCVExbLrcByMw_Kibq8vyzrrFygXEg8B1DH5_naGeMjcBq8iSzMw/exec';
-        
-        // Toggle sidebar di mobile
-        document.getElementById('menuToggle').addEventListener('click', () => {
-            document.querySelector('.sidebar').classList.toggle('active');
+        // Toggle mobile menu
+        document.getElementById('mobileMenuButton').addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.toggle('sidebar-active');
         });
 
-        // Navigasi menu
-        document.querySelectorAll('a[href^="#"]').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                const target = this.getAttribute('href');
-                
-                // Sembunyikan semua konten
-                document.querySelectorAll('[id$="Content"]').forEach(content => {
-                    content.classList.add('hidden');
-                });
-                
-                // Tampilkan konten yang dipilih
-                if(target === '#dashboard') {
-                    document.getElementById('dashboardContent').classList.remove('hidden');
-                    loadDashboardData();
-                } else if(target === '#pembukuan') {
-                    document.getElementById('pembukuanContent').classList.remove('hidden');
-                } else if(target === '#laporan') {
-                    document.getElementById('laporanContent').classList.remove('hidden');
-                }
-                
-                // Tutup sidebar di mobile
-                if(window.innerWidth < 768) {
-                    document.querySelector('.sidebar').classList.remove('active');
-                }
-            });
-        });
+        // Function to show content
+        function showContent(type) {
+            const dashboardContent = document.getElementById('dashboardContent');
+            const contentFrame = document.getElementById('contentFrame');
+            const iframe = contentFrame.querySelector('iframe');
 
-        // Format Rupiah
-        function formatRupiah(angka) {
-            return new Intl.NumberFormat('id-ID', { 
-                style: 'currency', 
-                currency: 'IDR',
-                minimumFractionDigits: 0 
-            }).format(angka);
-        }
+            // Hide mobile menu after selection
+            if (window.innerWidth < 768) {
+                document.querySelector('.sidebar').classList.remove('sidebar-active');
+            }
 
-        // Ambil data dashboard
-        async function loadDashboardData() {
-            try {
-                document.getElementById('loading').classList.remove('hidden');
+            if (type === 'dashboard') {
+                dashboardContent.classList.remove('hidden');
+                contentFrame.classList.add('hidden');
+                updateDashboardData();
+            } else {
+                dashboardContent.classList.add('hidden');
+                contentFrame.classList.remove('hidden');
                 
-                const response = await fetch(`${SCRIPT_URL}?action=getAll`);
-                const result = await response.json();
-                
-                if(result.success) {
-                    const data = result.data;
-                    let totalIncome = 0;
-                    let totalExpense = 0;
-                    
-                    data.forEach(transaction => {
-                        if(transaction.income) {
-                            totalIncome += parseFloat(transaction.income);
-                        }
-                        if(transaction.expense) {
-                            totalExpense += parseFloat(transaction.expense);
-                        }
-                    });
-                    
-                    const balance = totalIncome - totalExpense;
-                    
-                    // Update tampilan
-                    document.getElementById('totalSaldo').textContent = formatRupiah(balance);
-                    document.getElementById('totalPendapatan').textContent = formatRupiah(totalIncome);
-                    document.getElementById('totalBeban').textContent = formatRupiah(totalExpense);
-                    document.getElementById('labaRugi').textContent = formatRupiah(balance);
-                    
-                    // Update transaksi terakhir
-                    const recent = data.slice(-5).reverse();
-                    const tbody = document.getElementById('recentTransactions');
-                    tbody.innerHTML = recent.map(transaction => `
-                        <tr class="border-t">
-                            <td class="py-3">${new Date(transaction.date).toLocaleDateString('id-ID')}</td>
-                            <td>${transaction.description}</td>
-                            <td>${transaction.income ? formatRupiah(transaction.income) : formatRupiah(transaction.expense)}</td>
-                            <td>
-                                <span class="px-2 py-1 rounded ${transaction.income ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                                    ${transaction.income ? 'Pemasukan' : 'Pengeluaran'}
-                                </span>
-                            </td>
-                        </tr>
-                    `).join('');
-                }
-            } catch(error) {
-                console.error('Error:', error);
-            } finally {
-                document.getElementById('loading').classList.add('hidden');
+                const url = type === 'erp' ? 'erp.html' : 'dashboard.html';
+                iframe.src = url;
             }
         }
 
-        // Load data awal
-        window.addEventListener('DOMContentLoaded', () => {
-            loadDashboardData();
+        // Function to update dashboard data
+        function updateDashboardData() {
+            // Update values from ERP
+            const updateFromERP = () => {
+                const balanceElement = document.querySelector('#balance');
+                if (balanceElement) {
+                    document.getElementById('totalSaldo').textContent = balanceElement.textContent;
+                }
+            };
+
+            // Update values from Dashboard
+            const updateFromDashboard = () => {
+                const incomeElement = document.querySelector('#totalIncome');
+                const expenseElement = document.querySelector('#totalExpense');
+                const netProfitElement = document.querySelector('#netProfit');
+                
+                if (incomeElement && expenseElement && netProfitElement) {
+                    document.getElementById('totalPendapatan').textContent = incomeElement.textContent;
+                    document.getElementById('totalBeban').textContent = expenseElement.textContent;
+                    document.getElementById('labaRugi').textContent = netProfitElement.textContent;
+                }
+            };
+
+            // Create temporary iframes to get values
+            const erpIframe = document.createElement('iframe');
+            erpIframe.style.display = 'none';
+            erpIframe.src = 'erp.html';
+            erpIframe.onload = updateFromERP;
+            document.body.appendChild(erpIframe);
+
+            const dashboardIframe = document.createElement('iframe');
+            dashboardIframe.style.display = 'none';
+            dashboardIframe.src = 'dashboard.html';
+            dashboardIframe.onload = updateFromDashboard;
+            document.body.appendChild(dashboardIframe);
+
+            // Cleanup
+            setTimeout(() => {
+                document.body.removeChild(erpIframe);
+                document.body.removeChild(dashboardIframe);
+            }, 2000);
+        }
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', () => {
+            showContent('dashboard');
+            updateDashboardData();
         });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>
 </html>
