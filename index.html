@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Keuangan</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .sidebar {
+            width: 260px;
+            transition: all 0.3s;
+        }
+        
+        .content-area {
+            margin-left: 260px;
+            transition: all 0.3s;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: -260px;
+            }
+            .content-area {
+                margin-left: 0;
+            }
+            .sidebar.active {
+                margin-left: 0;
+            }
+        }
+
+        .active-menu {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Sidebar -->
+    <div class="sidebar fixed h-full bg-white shadow-lg z-10">
+        <div class="p-4">
+            <h2 class="text-xl font-bold text-gray-800 mb-6">Keuangan</h2>
+            
+            <nav>
+                <ul class="space-y-2">
+                    <!-- Dashboard Menu -->
+                    <li>
+                        <a href="#dashboard" class="block p-3 text-gray-700 hover:bg-blue-50 rounded-lg transition-colors dashboard-menu">
+                            <i class="fas fa-home mr-2"></i> Dashboard
+                        </a>
+                    </li>
+                    
+                    <!-- Keuangan Menu -->
+                    <li class="mt-4">
+                        <div class="p-3 text-gray-500 text-sm font-medium">KEUANGAN</div>
+                        <ul class="space-y-2 ml-2">
+                            <li>
+                                <a href="#pembukuan" class="block p-3 text-gray-700 hover:bg-blue-50 rounded-lg transition-colors keuangan-menu">
+                                    <i class="fas fa-book mr-2"></i> Pembukuan
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#laporan" class="block p-3 text-gray-700 hover:bg-blue-50 rounded-lg transition-colors keuangan-menu">
+                                    <i class="fas fa-file-alt mr-2"></i> Laporan Laba/Rugi
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content-area min-h-screen">
+        <!-- Mobile Header -->
+        <div class="bg-white shadow-sm p-4 lg:hidden">
+            <button id="menuToggle" class="text-gray-600">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div id="dashboardContent" class="p-6">
+            <!-- Saldo dan Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <!-- Total Saldo -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center">
+                        <div class="rounded-full bg-blue-100 p-3 mr-4">
+                            <i class="fas fa-wallet text-blue-500 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">Total Saldo</p>
+                            <h3 class="text-2xl font-bold" id="totalSaldo">Rp 0</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cards dari Dashboard -->
+                <div class="bg-green-50 p-6 rounded-lg shadow-md">
+                    <h3 class="text-lg font-semibold text-green-700 mb-2">Total Pendapatan</h3>
+                    <p id="totalPendapatan" class="text-2xl font-bold text-green-600">Rp 0</p>
+                </div>
+                
+                <div class="bg-red-50 p-6 rounded-lg shadow-md">
+                    <h3 class="text-lg font-semibold text-red-700 mb-2">Total Beban</h3>
+                    <p id="totalBeban" class="text-2xl font-bold text-red-600">Rp 0</p>
+                </div>
+                
+                <div class="bg-blue-50 p-6 rounded-lg shadow-md">
+                    <h3 class="text-lg font-semibold text-blue-700 mb-2">Laba/Rugi Bersih</h3>
+                    <p id="labaRugi" class="text-2xl font-bold text-blue-600">Rp 0</p>
+                </div>
+            </div>
+
+            <!-- Grafik atau Visualisasi Data -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-4">Grafik Keuangan</h3>
+                <div id="chartContainer" class="h-64">
+                    <!-- Tempat untuk chart -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Iframe Container -->
+        <div id="iframeContainer" class="hidden p-6 h-screen">
+            <iframe id="contentFrame" class="w-full h-full rounded-lg shadow-md bg-white" frameborder="0"></iframe>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwlH1A8xC94pG95QiuCVExbLrcByMw_Kibq8vyzrrFygXEg8B1DH5_naGeMjcBq8iSzMw/exec';
+
+        // Format Rupiah
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID', { 
+                style: 'currency', 
+                currency: 'IDR',
+                minimumFractionDigits: 0 
+            }).format(angka);
+        }
+
+        // Update dashboard summary
+        async function updateDashboard() {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getAll`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const data = result.data;
+                    let totalSaldo = 0;
+                    let totalPendapatan = 0;
+                    let totalBeban = 0;
+
+                    data.forEach(transaction => {
+                        if (transaction.income) {
+                            totalSaldo += parseFloat(transaction.income);
+                            totalPendapatan += parseFloat(transaction.income);
+                        }
+                        if (transaction.expense) {
+                            totalSaldo -= parseFloat(transaction.expense);
+                            totalBeban += parseFloat(transaction.expense);
+                        }
+                    });
+
+                    document.getElementById('totalSaldo').textContent = formatRupiah(totalSaldo);
+                    document.getElementById('totalPendapatan').textContent = formatRupiah(totalPendapatan);
+                    document.getElementById('totalBeban').textContent = formatRupiah(totalBeban);
+                    document.getElementById('labaRugi').textContent = formatRupiah(totalPendapatan - totalBeban);
+                }
+            } catch (error) {
+                console.error('Error updating dashboard:', error);
+            }
+        }
+
+        // Navigation Handler
+        function handleNavigation() {
+            const links = document.querySelectorAll('a');
+            links.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const target = link.getAttribute('href');
+
+                    // Toggle active menu
+                    links.forEach(l => l.parentElement.classList.remove('active-menu'));
+                    link.parentElement.classList.add('active-menu');
+
+                    if (target === '#dashboard') {
+                        document.getElementById('iframeContainer').classList.add('hidden');
+                        document.getElementById('dashboardContent').classList.remove('hidden');
+                        updateDashboard();
+                    } else {
+                        document.getElementById('dashboardContent').classList.add('hidden');
+                        document.getElementById('iframeContainer').classList.remove('hidden');
+                        
+                        const iframe = document.getElementById('contentFrame');
+                        if (target === '#pembukuan') {
+                            iframe.src = 'erp.html';
+                        } else if (target === '#laporan') {
+                            iframe.src = 'dashboard.html';
+                        }
+                    }
+                });
+            });
+        }
+
+        // Mobile Menu Toggle
+        document.getElementById('menuToggle').addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.toggle('active');
+        });
+
+        // Initial setup
+        document.addEventListener('DOMContentLoaded', () => {
+            handleNavigation();
+            updateDashboard();
+            
+            // Set dashboard as default view
+            document.querySelector('.dashboard-menu').parentElement.classList.add('active-menu');
+        });
+    </script>
+</body>
+</html>
